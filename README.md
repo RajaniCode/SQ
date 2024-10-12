@@ -24,6 +24,8 @@ Badges/postgresql.org.svg?raw=true)](https://postgresql.org)
 [![image](
 Badges/mysql.com.svg?raw=true)](https://mysql.com)  
 [![image](
+Badges/dev.mysql.com.svg?raw=true)](https://dev.mysql.com)  
+[![image](
 Badges/mariadb.org.svg?raw=true)](https://mariadb.org)  
 [![image](
 Badges/mariadb.com.svg?raw=true)](https://mariadb.com)  
