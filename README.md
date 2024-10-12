@@ -1,8 +1,9 @@
 SQL
 ---
 
-- PostgreSQL
-
+- PostgreSQL  
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Logos/postgresql.org.svg?raw=true)](https://postgresql.org)  
 - MySQL
 
 - MariaDB
