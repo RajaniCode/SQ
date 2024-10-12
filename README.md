@@ -34,7 +34,7 @@ Badges/SQL-Server-microsoft.com.svg?raw=true)](https://microsoft.com/sql-server)
 [![image](
 Badges/SQL-Server-learn.microsoft.com.svg?raw=true)]([https://microsoft.com/sql-server](https://learn.microsoft.com/sql/sql-server/))  
 [![image](
-Badges/Oracle-Database-oracle.com.svg.svg?raw=true)](https://oracle.com/database/)  
+Badges/Oracle-Database-oracle.com.svg?raw=true)](https://oracle.com/database/)  
 [![image](
 Badges/Oracle-Database-docs.oracle.com.svg?raw=true)](https://docs.oracle.com/database/oracle/)  
 [![image](
