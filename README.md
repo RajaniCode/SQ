@@ -32,7 +32,7 @@ Badges/mariadb.com.svg?raw=true)](https://mariadb.com)
 [![image](
 Badges/SQL-Server-microsoft.com.svg?raw=true)](https://microsoft.com/sql-server)  
 [![image](
-Badges/SQL-Server-learn.microsoft.com.svg?raw=true)]([https://microsoft.com/sql-server](https://learn.microsoft.com/sql/sql-server/))  
+Badges/SQL-Server-learn.microsoft.com.svg?raw=true)](https://learn.microsoft.com/sql/sql-server/))  
 [![image](
 Badges/Oracle-Database-oracle.com.svg?raw=true)](https://oracle.com/database/)  
 [![image](
