@@ -3,7 +3,7 @@ SQL
 
 - PostgreSQL  
 [![image](
-https://github.com/RajaniCode/SQ/blob/main/Reference/Logos/postgresql.org.svg?raw=true)](https://postgresql.org)  
+https://github.com/RajaniCode/SQ/blob/main/Reference/Logos/PostgreSQL.png?raw=true)](https://postgresql.org)  
 - MySQL
 
 - MariaDB
