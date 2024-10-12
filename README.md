@@ -82,9 +82,13 @@ https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/php.net.svg?raw=true
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/apachefriends.org.svg?raw=true)](https://apachefriends.org)  
 [![image](
-https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/apachefriends.org.svg?raw=true)](https://perl.org)  
-
-
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/perl.org.svg?raw=true)](https://perl.org)  
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/strawberryperl.com.svg?raw=true)](https://strawberryperl.com)  
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/activestate.com.svg?raw=true)](https://activestate.com)  
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/cpan.org.svg?raw=true)](https://cpan.org)  
 
 
 [postgresql.org](https://postgresql.org/) 
