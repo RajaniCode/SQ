@@ -32,6 +32,8 @@ Badges/mariadb.com.svg?raw=true)](https://mariadb.com)
 [![image](
 Badges/SQL-Server-microsoft.com.svg?raw=true)](https://microsoft.com/sql-server)  
 [![image](
+Badges/SQL-Server-learn.microsoft.com.svg?raw=true)]([https://microsoft.com/sql-server](https://learn.microsoft.com/sql/sql-server/))  
+[![image](
 Badges/oracle.com.svg?raw=true)](https://oracle.com)  
 [![image](
 Badges/Oracle-Database-docs.oracle.com.svg?raw=true)](https://docs.oracle.com/database/oracle/)  
