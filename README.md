@@ -47,7 +47,7 @@ https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/pnpm.io.svg?raw=true
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/jquery.com.svg?raw=true)](https://jquery.com) 
 [![image](
-https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/developer.mozilla.org.svg?raw=true)](https://developer.mozilla.org) 
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/developer.mozilla.org.svg?raw=true)](https://developer.mozilla.org)  
 
 
 
