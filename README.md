@@ -68,8 +68,10 @@ https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/java.com.svg?raw=tru
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/maven.apache.org.svg?raw=true)](https://maven.apache.org)  
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/gradle.org.svg?raw=true)](https://gradle.org)  
-
-
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/dotnet.microsoft.com.svg?raw=true)](https://dotnet.microsoft.com)  
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/microsoft.com.svg?raw=true)](https://microsoft.com)
 
 [postgresql.org](https://postgresql.org/)  
 [mysql.com](https://mysql.com/)  
