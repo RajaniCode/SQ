@@ -64,6 +64,10 @@ https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/pgtap.org.svg?raw=tr
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/openjdk.org.svg?raw=true)](https://openjdk.org)  
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/java.com.svg?raw=true)](https://java.com)  
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/maven.apache.org.svg?raw=true)](https://maven.apache.org)  
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/gradle.org.svg?raw=true)](https://gradle.org)  
 
 
 
