@@ -38,7 +38,10 @@ https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/hsqldb.org.svg?raw=t
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/h2database.com.svg?raw=true)](https://h2database.com)  
 
-
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/nodejs.org.svg?raw=true)](https://nodejs.org)  
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/npmjs.com.svg?raw=true)](https://npmjs.com)  
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/python.org.svg?raw=true)](https://python.org)  
 [![image](
@@ -49,7 +52,6 @@ https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/pgtap.org.svg?raw=tr
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/openjdk.org.svg?raw=true)](https://openjdk.org)  
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/java.com.svg?raw=true)](https://java.com)  
-
 
 
 
