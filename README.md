@@ -72,7 +72,7 @@ https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/microsoft.com.svg?ra
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/mono-project.com.svg?raw=true)](https://mono-project.com)
 [![image](
-https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/nuget.com.svg?raw=true)](https://nuget.com)
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/nuget.org.svg?raw=true)](https://nuget.org)
 
 
 
