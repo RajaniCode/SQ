@@ -50,7 +50,8 @@ https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/jquery.com.svg?raw=t
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/javascript.com.svg?raw=true)](https://javascript.com)  
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/developer.mozilla.org.svg?raw=true)](https://developer.mozilla.org)  
-
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/getbootstrap.com.svg?raw=true)](https://getbootstrap.com)  
 
 
 [![image](
