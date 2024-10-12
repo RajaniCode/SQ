@@ -77,8 +77,11 @@ https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/nuget.org.svg?raw=tr
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/ruby-lang.org.svg?raw=true)](https://ruby-lang.org)  
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/rubygems.org.svg?raw=true)](https://rubygems.org)  
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/php.net.svg?raw=true)](https://php.net)  
 
-[postgresql.org](https://postgresql.org/)  
+
+[postgresql.org](https://postgresql.org/) 
 [mysql.com](https://mysql.com/)  
 [mariadb.org](https://mariadb.org/)  
 [microsoft.com](https://microsoft.com/)  
