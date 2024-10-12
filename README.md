@@ -72,10 +72,11 @@ https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/microsoft.com.svg?ra
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/mono-project.com.svg?raw=true)](https://mono-project.com)
 [![image](
-https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/nuget.org.svg?raw=true)](https://nuget.org)
-
-
-
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/nuget.org.svg?raw=true)](https://nuget.org)  
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/ruby-lang.org.svg?raw=true)](https://ruby-lang.org)  
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/rubygems.org.svg?raw=true)](https://rubygems.org)  
 
 [postgresql.org](https://postgresql.org/)  
 [mysql.com](https://mysql.com/)  
