@@ -22,6 +22,10 @@ Credits
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/postgresql.org.svg?raw=true)](https://postgresql.org)  
 [![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/mysql.com.svg?raw=true)](https://mysql.com)  
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/mariadb.org.svg?raw=true)](https://mariadb.org)  
+[![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/python.org.svg?raw=true)](https://python.org)  
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/pypi.org.svg?raw=true)](https://pypi.org)  
