@@ -66,9 +66,9 @@ Badges/maven.apache.org.svg?raw=true)](https://maven.apache.org)
 [![image](
 Badges/gradle.org.svg?raw=true)](https://gradle.org)  
 [![image](
-Badges/dotnet.microsoft.com.svg?raw=true)](https://dotnet.microsoft.com)  
-[![image](
 Badges/microsoft.com.svg?raw=true)](https://microsoft.com)  
+[![image](
+Badges/dotnet.microsoft.com.svg?raw=true)](https://dotnet.microsoft.com)  
 [![image](
 Badges/mono-project.com.svg?raw=true)](https://mono-project.com)
 [![image](
