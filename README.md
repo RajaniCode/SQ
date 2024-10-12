@@ -32,6 +32,8 @@ Badges/SQL-Server-microsoft.com.svg?raw=true)](https://microsoft.com/sql-server)
 [![image](
 Badges/oracle.com.svg?raw=true)](https://oracle.com)  
 [![image](
+Badges/Oracle-Java-oracle.com.svg?raw=true)]([https://oracle.com](https://docs.oracle.com/database/oracle/))  
+[![image](
 Badges/sqlite.org.svg?raw=true)](https://sqlite.org)  
 [![image](
 Badges/hsqldb.org.svg?raw=true)](https://hsqldb.org)  
