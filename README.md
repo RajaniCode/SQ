@@ -88,6 +88,8 @@ https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/strawberryperl.com.s
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/cpan.org.svg?raw=true)](https://cpan.org)  
 [![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/lima-vm.io.svg?raw=true)](https://lima-vm.io.org)  
+[![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/T-SQL-static-code-analysis-rules.sonarsource.com.svg?raw=true)](https://rules.sonarsource.com/tsql)  
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/PL-SQL-static-code-analysis-rules.sonarsource.com.svg?raw=true)](https://rules.sonarsource.com/plsql)  
