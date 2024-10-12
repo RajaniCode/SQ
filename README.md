@@ -79,7 +79,8 @@ https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/ruby-lang.org.svg?ra
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/rubygems.org.svg?raw=true)](https://rubygems.org)  
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/php.net.svg?raw=true)](https://php.net)  
-
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/apachefriends.org.svg?raw=true)](https://apachefriends.org)  
 
 [postgresql.org](https://postgresql.org/) 
 [mysql.com](https://mysql.com/)  
