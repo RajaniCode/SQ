@@ -31,7 +31,8 @@ https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/mariadb.com.svg?raw=
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/SQL-Server-microsoft.com.svg?raw=true)](https://microsoft.com)  
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/oracle.com.svg?raw=true)](https://oracle.com)  
-
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/sqlite.com.svg?raw=true)](https://sqlite.com)  
 
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/python.org.svg?raw=true)](https://python.org)  
