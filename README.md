@@ -72,7 +72,7 @@ Badges/Java-oracle.com.svg?raw=true)](https://oracle.com/java)
 [![image](
 Badges/maven.apache.org.svg?raw=true)](https://maven.apache.org)  
 [![image](
-Badges/gradle.org.svg?raw=true)](https://gradle.org)  
+Badges/gradle.com.svg?raw=true)](https://gradle.com)  
 [![image](
 Badges/microsoft.com.svg?raw=true)](https://microsoft.com)  
 [![image](
