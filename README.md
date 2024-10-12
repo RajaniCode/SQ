@@ -20,7 +20,7 @@ SQL
 Credits
 -------  
 [![image](
-Badges/postgresql.org.svg?raw=true)](https://postgresql.org) 
+Badges/postgresql.org.svg?raw=true)](https://postgresql.org)  
 [![image](
 Badges/pgadmin.org.svg?raw=true)](https://pgadmin.org)  
 [![image](
