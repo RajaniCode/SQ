@@ -87,7 +87,10 @@ https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/perl.org.svg?raw=tru
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/strawberryperl.com.svg?raw=true)](https://strawberryperl.com)    
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/cpan.org.svg?raw=true)](https://cpan.org)  
-
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/T-SQL-static-code-analysis-rules.sonarsource.com.svg?raw=true)](https://rules.sonarsource.com/tsql)  
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/PL-SQL-static-code-analysis-rules.sonarsource.com.svg?raw=true)](https://rules.sonarsource.com/plsql)  
 
 [postgresql.org](https://postgresql.org/) 
 [mysql.com](https://mysql.com/)  
