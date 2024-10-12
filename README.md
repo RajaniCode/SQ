@@ -20,6 +20,8 @@ SQL
 Credits
 -------  
 [![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/postgresql.org.svg?raw=true)](https://postgresql.org)  
+[![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/python.org.svg?raw=true)](https://python.org)  
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/pypi.org.svg?raw=true)](https://pypi.org)  
@@ -27,10 +29,6 @@ https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/pypi.org.svg?raw=tru
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/openjdk.org.svg?raw=true)](https://openjdk.org)  
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/java.com.svg?raw=true)](https://java.com)  
-[![image](
-https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/scala-lang.org.svg?raw=true)](https://scala-lang.org)  
-[![image](
-https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/scala-sbt.org.svg?raw=true)](https://scala-sbt.org)  
 
 
 
