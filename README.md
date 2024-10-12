@@ -28,7 +28,7 @@ Badges/mariadb.org.svg?raw=true)](https://mariadb.org)
 [![image](
 Badges/mariadb.com.svg?raw=true)](https://mariadb.com)  
 [![image](
-Badges/SQL-Server-microsoft.com1.svg?raw=true)](https://microsoft.com)  
+Badges/SQL-Server-microsoft.com.svg?raw=true)](https://microsoft.com)  
 [![image](
 Badges/oracle.com.svg?raw=true)](https://oracle.com)  
 [![image](
