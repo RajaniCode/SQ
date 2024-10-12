@@ -32,7 +32,7 @@ Badges/SQL-Server-microsoft.com.svg?raw=true)](https://microsoft.com/sql-server)
 [![image](
 Badges/oracle.com.svg?raw=true)](https://oracle.com)  
 [![image](
-Badges/oracle.com.svg?raw=true)](https://docs.oracle.com/database/oracle/)  
+Badges/Oracle-Database-docs.oracle.com.svg?raw=true)](https://docs.oracle.com/database/oracle/)  
 [![image](
 Badges/sqlite.org.svg?raw=true)](https://sqlite.org)  
 [![image](
