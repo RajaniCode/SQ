@@ -32,9 +32,9 @@ https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/SQL-Server-microsoft
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/oracle.com.svg?raw=true)](https://oracle.com)  
 [![image](
-https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/sqlite.com.svg?raw=true)](https://sqlite.com)  
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/sqlite.org.svg?raw=true)](https://sqlite.org)  
 [![image](
-https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/hsqldb.com.svg?raw=true)](https://hsqldb.com)  
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/hsqldb.org.svg?raw=true)](https://hsqldb.org)  
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/h2database.com.svg?raw=true)](https://h2database.com)  
 
