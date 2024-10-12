@@ -84,7 +84,9 @@ https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/apachefriends.org.sv
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/perl.org.svg?raw=true)](https://perl.org)  
 [![image](
-https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/strawberryperl.com.svg?raw=true)](https://strawberryperl.com)    
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/strawberryperl.com.svg?raw=true)](https://strawberryperl.com)  
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/activestate.com.svg?raw=true)](https://activestate.com)  
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/cpan.org.svg?raw=true)](https://cpan.org)  
 [![image](
