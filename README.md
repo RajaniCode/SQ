@@ -38,10 +38,13 @@ https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/hsqldb.org.svg?raw=t
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/h2database.com.svg?raw=true)](https://h2database.com)  
 
+
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/python.org.svg?raw=true)](https://python.org)  
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/pypi.org.svg?raw=true)](https://pypi.org)  
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/pgtap.org.svg?raw=true)](https://pgtap.org)  
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/openjdk.org.svg?raw=true)](https://openjdk.org)  
 [![image](
