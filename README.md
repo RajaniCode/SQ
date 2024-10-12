@@ -1,15 +1,12 @@
 SQL
 ---
 
-- PostgreSQL  
-[![image](
-https://github.com/RajaniCode/SQ/blob/main/Reference/Logos/PostgreSQL.png?raw=true)](https://postgresql.org)  
-- MySQL  
-[![image](
-https://github.com/RajaniCode/SQ/blob/main/Reference/Logos/MySQL.png?raw=true)](https://mysql.com)  
+- PostgreSQL
+
+- MySQL
+
 - MariaDB
-[![image](
-https://github.com/RajaniCode/SQ/blob/main/Reference/Logos/MariaDB.png?raw=true)](https://mariadb.org)  
+
 - SQL Server
 
 - Oracle
