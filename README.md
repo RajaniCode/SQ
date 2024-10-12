@@ -43,6 +43,8 @@ https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/nodejs.org.svg?raw=t
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/npmjs.com.svg?raw=true)](https://npmjs.com)  
 [![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/pnpm.io.svg?raw=true)](https://pnpm.io)  
+[![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/python.org.svg?raw=true)](https://python.org)  
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/pypi.org.svg?raw=true)](https://pypi.org)  
