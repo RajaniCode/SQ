@@ -71,7 +71,8 @@ https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/dotnet.microsoft.com
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/microsoft.com.svg?raw=true)](https://microsoft.com)  
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/mono-project.com.svg?raw=true)](https://mono-project.com)
-
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/nuget.com.svg?raw=true)](https://nuget.com)
 
 
 
