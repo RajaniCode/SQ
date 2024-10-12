@@ -6,9 +6,10 @@ SQL
 https://github.com/RajaniCode/SQ/blob/main/Reference/Logos/PostgreSQL.png?raw=true)](https://postgresql.org)  
 - MySQL  
 [![image](
-https://github.com/RajaniCode/SQ/blob/main/Reference/Logos/MySQL.png?raw=true)](https://mysql.org)  
+https://github.com/RajaniCode/SQ/blob/main/Reference/Logos/MySQL.png?raw=true)](https://mysql.com)  
 - MariaDB
-
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Badges/MariaDB.png.svg?raw=true)](https://mariadb.org)  
 - SQL Server
 
 - Oracle
