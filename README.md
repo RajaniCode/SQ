@@ -4,8 +4,9 @@ SQL
 - PostgreSQL  
 [![image](
 https://github.com/RajaniCode/SQ/blob/main/Reference/Logos/PostgreSQL.png?raw=true)](https://postgresql.org)  
-- MySQL
-
+- MySQL  
+[![image](
+https://github.com/RajaniCode/SQ/blob/main/Reference/Logos/MySQL.png?raw=true)](https://mysql.org)  
 - MariaDB
 
 - SQL Server
