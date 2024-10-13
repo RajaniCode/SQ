@@ -24,8 +24,6 @@ Credits/postgresql.org.svg?raw=true)](https://postgresql.org)
 [![image](
 Credits/pgadmin.org.svg?raw=true)](https://pgadmin.org)  
 [![image](
-Credits/pgtap.org.svg?raw=true)](https://pgtap.org)  
-[![image](
 Credits/mysql.com.svg?raw=true)](https://mysql.com)  
 [![image](
 Credits/dev.mysql.com.svg?raw=true)](https://dev.mysql.com)  
