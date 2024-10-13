@@ -50,7 +50,7 @@ Credits/h2database.com.svg?raw=true)](https://h2database.com)
 [![image](
 Credits/nodejs.org.svg?raw=true)](https://nodejs.org)  
 [![image](
-Credits/npmjs.com1.svg?raw=true)](https://npmjs.com)  
+Credits/npmjs.com.svg?raw=true)](https://npmjs.com)  
 [![image](
 Credits/pnpm.io.svg?raw=true)](https://pnpm.io)  
 [![image](
