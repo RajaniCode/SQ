@@ -72,8 +72,6 @@ Credits/gradle.org.svg?raw=true)](https://gradle.org/)
 [![image](
 Credits/gradle.com.svg?raw=true)](https://gradle.com/)  
 [![image](
-Credits/microsoft.com.svg?raw=true)](https://microsoft.com/)  
-[![image](
 Credits/dotnet.microsoft.com.svg?raw=true)](https://dotnet.microsoft.com/)  
 [![image](
 Credits/nuget.org.svg?raw=true)](https://nuget.org/)  
