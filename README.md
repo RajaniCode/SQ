@@ -36,8 +36,6 @@ Credits/SQL-Server-microsoft.com.svg?raw=true)](https://microsoft.com/sql-server
 [![image](
 Credits/SQL-Server-learn.microsoft.com.svg?raw=true)](https://learn.microsoft.com/sql/)  
 [![image](
-Credits/oracle.com.svg?raw=true)](https://oracle.com/)  
-[![image](
 Credits/Oracle-Database-oracle.com.svg?raw=true)](https://oracle.com/database/)  
 [![image](
 Credits/Oracle-Database-docs.oracle.com.svg?raw=true)](https://docs.oracle.com/database/)  
