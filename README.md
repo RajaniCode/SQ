@@ -42,7 +42,7 @@ Credits/Oracle-Database-docs.oracle.com.svg?raw=true)](https://docs.oracle.com/d
 [![image](
 Credits/cloud.google.com.svg?raw=true)](https://cloud.google.com)  
 [![image](
-Credits/aws.amazon.comg.svg?raw=true)](https://aws.amazon.com/)  
+Credits/aws.amazon.com.svg?raw=true)](https://aws.amazon.com/)  
 [![image](
 Credits/azure.microsoft.com.svg?raw=true)](https://azure.microsoft.com/)  
 [![image](
