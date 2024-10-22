@@ -90,13 +90,7 @@ Credits/apachefriends.org.svg?raw=true)](https://apachefriends.org/)
 [![image](
 Credits/perl.org.svg?raw=true)](https://perl.org/)  
 [![image](
-Credits/strawberryperl.com.svg?raw=true)](https://strawberryperl.com/)  
-[![image](
-Credits/activestate.com.svg?raw=true)](https://activestate.com/)  
-[![image](
 Credits/cpan.org.svg?raw=true)](https://cpan.org/)  
-[![image](
-Credits/metacpan.org.svg?raw=true)](https://metacpan.org/)  
 [![image](
 Credits/lima-vm.io.svg?raw=true)](https://lima-vm.io/)  
 [![image](
