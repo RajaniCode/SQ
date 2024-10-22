@@ -13,10 +13,6 @@ SQL
 
 - SQLite
 
-- HSQLDB
-
-- H2
-
 Credits
 -------  
 [![image](
@@ -40,7 +36,7 @@ Credits/Oracle-Database-oracle.com.svg?raw=true)](https://oracle.com/database/)
 [![image](
 Credits/Oracle-Database-docs.oracle.com.svg?raw=true)](https://docs.oracle.com/database/)  
 [![image](
-Credits/cloud.google.com.svg?raw=true)](https://cloud.google.com)  
+Credits/cloud.google.com1.svg?raw=true)](https://cloud.google.com)  
 [![image](
 Credits/aws.amazon.com.svg?raw=true)](https://aws.amazon.com/)  
 [![image](
