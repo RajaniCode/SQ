@@ -102,6 +102,8 @@ Credits/metacpan.org.svg?raw=true)](https://metacpan.org/)
 [![image](
 Credits/lima-vm.io.svg?raw=true)](https://lima-vm.io/)  
 [![image](
+Credits/cncf.io.svg?raw=true)](https://cncf.io/)  
+[![image](
 Credits/T-SQL-static-code-analysis-rules.sonarsource.com.svg?raw=true)](https://rules.sonarsource.com/tsql/)  
 [![image](
 Credits/PL-SQL-static-code-analysis-rules.sonarsource.com.svg?raw=true)](https://rules.sonarsource.com/plsql/)
