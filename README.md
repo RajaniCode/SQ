@@ -78,8 +78,6 @@ Credits/nuget.org.svg?raw=true)](https://nuget.org/)
 [![image](
 Credits/mono-project.com.svg?raw=true)](https://mono-project.com/)  
 [![image](
-Credits/monodevelop.com.svg?raw=true)](https://monodevelop.com/)  
-[![image](
 Credits/ruby-lang.org.svg?raw=true)](https://ruby-lang.org/)  
 [![image](
 Credits/rubygems.org.svg?raw=true)](https://rubygems.org/)  
