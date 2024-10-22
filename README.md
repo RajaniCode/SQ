@@ -11,8 +11,6 @@ SQL
 
 - Oracle
 
-- SQLite
-
 Credits
 -------  
 [![image](
