@@ -104,8 +104,9 @@ Credits/cpan.org.svg)](https://cpan.org/)
 Credits/lima-vm.io.svg)](https://lima-vm.io/)  
 [![image](
 Credits/cncf.io.svg)](https://cncf.io/)<!--[![image](
-Credits/jetbrains.com.svg)](https://jetbrains.com/)  [![image](
-Credits/DataGrip-jetbrains.com.svg)](https://jetbrains.com/datagrip/)-->  <!--[![image](
+Credits/jetbrains.com.svg)](https://jetbrains.com/)  
+[![image](
+Credits/DataGrip-jetbrains.com.svg)](https://jetbrains.com/datagrip/)-->  
 [![image](
 Credits/T-SQL-static-code-analysis-rules.sonarsource.com.svg)](https://rules.sonarsource.com/tsql/)  
 [![image](
