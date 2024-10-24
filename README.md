@@ -28,11 +28,8 @@ Credits/mariadb.com.svg)](https://mariadb.com/)
 [![image](
 Credits/SQL-Server-microsoft.com.svg)](https://microsoft.com/sql-server/)  
 [![image](
-Credits/SQL-Server-learn.microsoft.com.svg)](https://learn.microsoft.com/sql/)  
-
-[![image](
-Credits/learn.microsoft.com.svg)](https://learn.microsoft.com/)
-  
+Credits/SQL-Server-learn.microsoft.com.svg)](https://learn.microsoft.com/sql/)<!--[![image](
+Credits/learn.microsoft.com.svg)](https://learn.microsoft.com/)-->  
 [![image](
 Credits/Oracle-Database-oracle.com.svg)](https://oracle.com/database/)  
 [![image](
