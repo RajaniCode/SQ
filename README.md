@@ -103,8 +103,6 @@ Credits/cpan.org.svg)](https://cpan.org/)
 [![image](
 Credits/ubuntu.com.svg)](https://ubuntu.com/)  
 [![image](
-Credits/multipass.run.svg)](https://multipass.run/)  
-[![image](
 Credits/docker.com.svg)](https://docker.com/)  
 [![image](
 Credits/lima-vm.io.svg)](https://lima-vm.io/)  
