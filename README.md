@@ -74,12 +74,12 @@ Credits/gradle.org.svg)](https://gradle.org/)
 [![image](
 Credits/gradle.com.svg)](https://gradle.com/)  
 [![image](
-Credits/microsoft.com.svg)](https://microsoft.com/)<!--[![image](
-Credits/dotnet.microsoft.com.svg)](https://dotnet.microsoft.com/)-->  
-[![image](
 Credits/CS.NET-dotnet.microsoft.com.svg)](https://dotnet.microsoft.com/)  
 [![image](
-Credits/CS-dotnet.microsoft.com.svg)](https://dotnet.microsoft.com/languages/csharp/)  
+Credits/CS-dotnet.microsoft.com.svg)](https://dotnet.microsoft.com/languages/csharp/)<!--[![image](
+Credits/dotnet.microsoft.com.svg)](https://dotnet.microsoft.com/)-->  
+[![image](
+Credits/microsoft.com.svg)](https://microsoft.com/)  
 [![image](
 Credits/nuget.org.svg)](https://nuget.org/)  
 [![image](
