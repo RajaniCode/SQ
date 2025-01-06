@@ -11,6 +11,12 @@ SQL
 
 - Oracle
 
+- Google Cloud Cloud SQL
+
+- Amazon Relational Database Service
+
+- Azure SQL
+
 Credits
 -------  
 [![image](
