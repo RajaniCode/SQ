@@ -1,0 +1,5194 @@
+###########################################################################################################################
+
+# SQL
+
+###########################################################################################################################
+/*************************************************************************************************************************/
+
+-- PostgreSQL
+
+/*************************************************************************************************************************/
+
+-- Port:
+-- 5432
+
+
+/*
+-- Command
+>psql -- version
+psql (PostgreSQL) 10.5
+>psql -V
+psql (PostgreSQL) 10.5
+> psql -U postgres
+
+-- Git Bash
+$ psql -- version
+psql (PostgreSQL) 10.5
+$ psql -V
+psql (PostgreSQL) 10.5
+$ psql -U postgres
+\list 
+\l
+\dt
+\connect postgres
+
+-- Version
+SELECT version();
+
+-- Databases
+SELECT datname FROM pg_database
+WHERE datistemplate = false;
+-- OR
+SELECT d.datname as "Name",
+       pg_catalog.pg_get_userbyid(d.datdba) as "Owner",
+       pg_catalog.pg_encoding_to_char(d.encoding) as "Encoding",
+       d.datcollate as "Collate",
+       d.datctype as "Ctype",
+       pg_catalog.array_to_string(d.datacl, E'\n') AS "Access privileges"
+FROM pg_catalog.pg_database d
+ORDER BY 1;
+
+-- Current Database
+SELECT current_database();
+
+-- Tables in Current Database
+SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';
+-- OR
+SELECT table_schema, table_name
+FROM information_schema.tables
+ORDER BY table_schema DESC, table_name
+
+-- Columns
+SELECT column_name FROM information_schema.columns
+WHERE table_name = 'customer';
+-- OR
+SELECT column_name, udt_name FROM information_schema.columns
+WHERE table_name = 'customer';
+-- OR
+SELECT * FROM information_schema.columns
+WHERE table_name = 'customer';
+
+-- In PostgreSQL, close one database connection to use another database
+
+CREATE DATABASE testdb;
+
+SELECT pg_terminate_backend(pg_stat_activity.pid)
+FROM pg_stat_activity
+WHERE pg_stat_activity.datname = 'testdb'
+AND pid <> pg_backend_pid();
+
+DROP DATABASE IF EXISTS testdb;
+
+DROP DATABASE testdb;
+
+-- Note:
+-- COMMIT; 
+-- ROLLBACK;
+
+\q
+
+
+-- psql -U postgres
+-- postgres=# \connect postgres;
+-- postgres=# DROP DATABASE IF EXISTS sampledb;
+
+CREATE DATABASE sampledb;
+
+-- \connect sampledb;
+
+DROP TABLE IF EXISTS users;
+CREATE TABLE users
+(
+    id SERIAL NOT NULL,
+    username VARCHAR(50) NOT NULL, 
+    login_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    login_time TIME NOT NULL DEFAULT CURRENT_TIME,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,    
+    CONSTRAINT pk_id PRIMARY KEY(id),
+    CONSTRAINT idx_username UNIQUE(username)    
+);
+
+SELECT * FROM users;
+
+INSERT INTO users(username, login_date, login_time, created_at, updated_at)
+VALUES('Foo', '2016-11-06', '10:49:35', '2016-11-06 10:49:35.0', '2016-11-06 10:49:35.0');
+
+SELECT * FROM users;
+*/
+
+
+/*
+-- SEQUENCE
+DROP SEQUENCE IF EXISTS test_seq;
+
+-- START value (0) cannot be less than MINVALUE (1)
+CREATE SEQUENCE test_seq START 1 INCREMENT 2;
+
+DROP TABLE  IF EXISTS test;
+
+CREATE TABLE test (
+  id integer DEFAULT nextval('test_seq') NOT NULL,
+  value VARCHAR(32)
+);
+
+-- INSERT INTO test (value) VALUES ('foo');
+-- INSERT INTO test (value) VALUES ('bar');
+
+-- ALTER SEQUENCE test_seq RESTART WITH 100;
+
+-- Workaround for START value (0) cannot be less than MINVALUE (1)
+-- INSERT INTO test VALUES (0, 'foo');
+
+INSERT INTO test (value) VALUES ('baz');
+INSERT INTO test (value) VALUES ('qux');
+
+SELECT * FROM test;
+*/
+
+
+-- Function
+
+CREATE OR REPLACE FUNCTION add_em(x integer, y integer) RETURNS integer AS $$
+    SELECT x + y;
+$$ LANGUAGE SQL;
+
+SELECT add_em(1, 2) AS answer;
+
+-- Function
+
+CREATE OR REPLACE FUNCTION count_customer() RETURNS bigint AS $$
+    SELECT count(*) from customer;
+$$ LANGUAGE SQL;
+
+SELECT count_customer() AS answer;
+
+-- Function
+
+CREATE OR REPLACE FUNCTION hi_lo(
+ a NUMERIC, 
+ b NUMERIC,
+ c NUMERIC, 
+        OUT hi NUMERIC,
+ OUT lo NUMERIC)
+AS $$
+BEGIN
+ hi := GREATEST(a,b,c);
+ lo := LEAST(a,b,c);
+END; $$
+LANGUAGE plpgsql;
+
+SELECT hi_lo(10,20,30);
+
+-- Function
+
+CREATE OR REPLACE FUNCTION square(
+ INOUT a NUMERIC)
+AS $$
+BEGIN
+ a := a * a;
+END; $$
+LANGUAGE plpgsql;
+
+SELECT square(4);
+
+-- Function
+
+CREATE TABLE department(id INT PRIMARY KEY, name TEXT);
+INSERT INTO department VALUES (1, 'MANAGEMENT');
+INSERT INTO department VALUES (2, 'IT');
+SELECT * FROM department;
+
+CREATE TABLE employee(id INT PRIMARY KEY, name TEXT, salary INT, departmentid INT REFERENCES department);
+INSERT INTO employee VALUES (1, 'ALpha', 30000, 1);
+INSERT INTO employee VALUES (2, 'Beta', 50000, 1);
+INSERT INTO employee VALUES (3, 'Gamma', 60000, 2);
+SELECT * FROM employee;
+
+CREATE OR REPLACE FUNCTION GetEmployees() RETURNS SETOF employee AS 'SELECT * FROM employee;' LANGUAGE 'SQL';
+SELECT * FROM GetEmployees() WHERE id > 2;
+CREATE TYPE holder AS (departmentid INT, totalsalary INT8);
+
+CREATE FUNCTION SqlDepartmentSalaries() RETURNS SETOF holder AS
+'
+SELECT departmentid, SUM(salary) AS totalsalary FROM GetEmployees() GROUP BY departmentid
+'
+LANGUAGE 'SQL';
+CREATE OR REPLACE FUNCTION PLpgSqlDepartmentSalaries() RETURNS SETOF holder AS
+'
+DECLARE
+r holder%ROWTYPE;
+BEGIN
+FOR r IN SELECT departmentid, SUM(salary) AS totalsalary FROM GetEmployees() GROUP BY departmentid LOOP
+RETURN NEXT r;
+END LOOP;
+RETURN;
+END
+'
+LANGUAGE 'PLPGSQL';
+SELECT * FROM PLpgSqlDepartmentSalaries();
+
+
+# Backup # [SQL dump]
+
+$ pg_dump -U postgres -f "E:\Working\SQL\PostgreSQL\PostgreSQL-Queries\pg_dump\SQL-dump\employeedb_backup.sql" employeedb
+
+# Backup # [Compressed dump]
+
+$ pg_dump -U postgres employeedb | gzip > "E:\Working\SQL\PostgreSQL\PostgreSQL-Queries\pg_dump\Compressed-dump\employeedb.gz"
+
+# Restore 
+
+$ psql -U postgres
+
+postgres=# SELECT version();
+
+postgres=# \l
+
+postgres=# DROP DATABASE IF EXISTS employeedb;
+
+postgres=# \l
+
+postgres=# CREATE DATABASE employeedb;
+
+postgres=# \l
+
+postgres=# \q
+
+# psql # [SQL dump]
+
+$ psql -U postgres -d employeedb -f "E:\Working\SQL\PostgreSQL\PostgreSQL-Queries\pg_dump\SQL-dump\employeedb_backup.sql"
+
+# psql # [Compressed dump]
+
+$ gunzip "E:\Working\SQL\PostgreSQL\PostgreSQL-Queries\pg_dump\Compressed-dump\employeedb.gz"
+
+$ psql -U postgres -d employeedb -f "E:\Working\SQL\PostgreSQL\PostgreSQL-Queries\pg_dump\Compressed-dump\employeedb"
+
+# pg_restore # [Compressed dump] [vide pg_restore.txt]
+
+$ psql -U postgres
+
+postgres=# \connect employeedb
+
+postgres=# SELECT * FROM employee;
+
+postgres=# \q
+
+
+-- \copy
+
+$ psql -U postgres
+
+\connect sample
+
+\copy (SELECT * FROM customer) to 'C:/Users/Aspire/Desktop/CSV/customer.csv' with csv
+
+SELECT customer_id, store_id, first_name, last_name, email, address_id, activebool::integer, create_date, last_update, active FROM customer;
+
+\copy (SELECT customer_id, store_id, first_name, last_name, email, address_id, activebool::integer, create_date, last_update, active FROM customer) to 'C:/Users/Aspire/Desktop/CSV/customer.csv' with csv
+
+\q
+
+$ cat 'C:/Users/Aspire/Desktop/CSV/customer.csv'
+
+/*************************************************************************************************************************/
+
+
+/*************************************************************************************************************************/
+
+# MySQL # MariaDB
+
+/*************************************************************************************************************************/
+
+$ winpty mysqladmin --version
+$ winpty mysql --version
+$ winpty mysqlsh --version
+> mysqladmin --version
+> winpty mysql --version
+> mysqlsh --version
+
+
+# MySQL Shell
+\connect --mysql root@localhost
+# OR
+$ winpty mysql -u root -p
+> mysql -u root -p
+
+# Queries
+SELECT * FROM mysql.user\G
+
+CREATE USER 'rajani'@'localhost' IDENTIFIED BY '**********************';
+
+GRANT ALL PRIVILEGES ON * . * TO 'rajani'@'localhost';
+
+SHOW GRANTS FOR 'rajani'@'localhost';
+
+SELECT Host, User FROM mysql.user;
+
+# \connect --mysql rajani@localhost
+# CURRENT_USER()
+SELECT CURRENT_USER();
+
+# \connect --mysql root@localhost
+# CURRENT_USER()
+SELECT CURRENT_USER();
+
+# ALTER ALTER USER 'rajani' # login as root or rajani
+ALTER USER 'rajani'@'localhost' IDENTIFIED BY '***************';
+# OR
+# ALTER ALTER USER 'root' # login as root or rajani
+ALTER USER 'root'@'localhost' IDENTIFIED BY '**********';
+
+# \connect --mysql rajani@localhost
+# CURRENT_USER()
+SELECT CURRENT_USER();
+
+# \connect --mysql root@localhost
+# CURRENT_USER()
+SELECT CURRENT_USER();
+
+# DROP USER 'rajani' # login as root or rajani
+DROP USER 'rajani'@'localhost';
+# OR
+# DROP USER 'root' # login as root or rajani
+DROP USER 'root'@'localhost';
+
+SELECT Host, User FROM mysql.user;
+
+# Version
+SELECT VERSION();
+SELECT @@version;
+SHOW VARIABLES LIKE "%version%";
+SHOW GLOBAL VARIABLES LIKE '%version%';
+
+# Databases
+SHOW DATABASES;
+
+# Change Database
+USE `mysql`; # OR # USE `sys`;
+
+# Current Database
+SELECT DATABASE();
+SELECT DATABASE() FROM DUAL;
+
+# Tables/Views in Current Database
+SHOW TABLES;
+
+# Columns # Tables/Views
+SELECT `COLUMN_NAME` 
+FROM `INFORMATION_SCHEMA`.`COLUMNS` 
+WHERE `TABLE_SCHEMA`='mysql' 
+AND `TABLE_NAME`='db';
+# OR
+SELECT `COLUMN_NAME` 
+FROM `INFORMATION_SCHEMA`.`COLUMNS` 
+WHERE `TABLE_SCHEMA`='sys' 
+AND `TABLE_NAME`='host_summary';
+
+# Stored Procedures/Functions
+SHOW PROCEDURE STATUS;
+SHOW FUNCTION STATUS;
+
+# USE `mysql`; # OR # USE `sys`;
+# Check for sampledb # C:\Users\rajanis\Downloads\XAMPP\xampp\mysql\data
+CREATE DATABASE IF NOT EXISTS `sampledb`;
+# OR 
+# DROP DATABASE IF EXISTS `sampledb`;
+# CREATE DATABASE `sampledb`;
+
+# Databases
+SHOW DATABASES;
+
+# USE `mysql`; # OR # USE `sys`;
+DROP DATABASE IF EXISTS `sampledb`;
+
+# Databases
+SHOW DATABASES;
+
+# USE `mysql`; # OR # USE `sys`;
+# Again # Check for sampledb # C:\Users\rajanis\Downloads\XAMPP\xampp\mysql\data
+CREATE DATABASE IF NOT EXISTS `sampledb`;
+
+# Databases
+SHOW DATABASES;
+
+USE `sampledb`;
+
+# Current Database
+SELECT DATABASE();
+SELECT DATABASE() FROM DUAL;
+
+# DROP TABLE IF EXISTS `sampledb`.`sample_table`;
+
+# MySQL ONLY # `updated_at` TIMESTAMP ON UPDATE CURRENT_TIMESTAMP 
+CREATE TABLE IF NOT EXISTS `sample_table`
+(
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `username` VARCHAR(50) NOT NULL, 
+    `login_date` DATE NOT NULL,
+    `login_time` TIME NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,    
+    PRIMARY KEY(`id`),
+    CONSTRAINT `idx_username` UNIQUE(`username`)    
+);
+# MariaDB # `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+/*
+MariaDB automatically assigns the following properties to the column
+DEFAULT CURRENT_TIMESTAMP
+ON UPDATE CURRENT_TIMESTAMP
+# Warning (code 1280): Name 'pk_id' ignored for PRIMARY key.
+*/
+CREATE TABLE IF NOT EXISTS `sample_table`
+(
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `username` VARCHAR(50) NOT NULL, 
+    `login_date` DATE NOT NULL,
+    `login_time` TIME NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,    
+    PRIMARY KEY(`id`),
+    CONSTRAINT `idx_username` UNIQUE(`username`)    
+);
+SELECT * FROM `sampledb`.`sample_table`;
+
+# Tables/Views in Current Database
+SHOW TABLES;
+
+# Columns # Tables/Views # sampledb # sample_table
+SELECT `COLUMN_NAME` 
+FROM `INFORMATION_SCHEMA`.`COLUMNS` 
+WHERE `TABLE_SCHEMA`='sampledb' 
+AND `TABLE_NAME`='sample_table';
+
+# AUTO_INCREMENT
+SELECT AUTO_INCREMENT FROM 
+information_schema.TABLES 
+WHERE `TABLE_SCHEMA`='sampledb' 
+AND `TABLE_NAME`='sample_table';
+
+INSERT INTO `sampledb`.`sample_table`
+(`username`, `login_date`, `login_time`, `created_at`, `updated_at`)
+VALUES
+('Foo', '2018-01-31', '22:58:57', '2018-01-20 21:57:56.0', '2018-01-31 22:58:57.0'),
+('Bar', '2019-02-28', '23:59:58', '2019-01-27 22:58:57.0', '2019-02-28 23:59:58.0');
+SELECT * FROM `sampledb`.`sample_table`;
+
+# AUTO_INCREMENT 
+SELECT AUTO_INCREMENT FROM 
+information_schema.TABLES 
+WHERE `TABLE_SCHEMA`='sampledb' 
+AND `TABLE_NAME`='sample_table';
+
+# MySQL ONLY # AUTO_INCREMENT # INSERT 
+INSERT INTO `sample_table`  
+(`id`, `username`, `login_date`, `login_time`, `created_at`, `updated_at`)
+VALUES
+(3, 'Baz', '2020-01-31', '22:58:57', '2020-01-20 21:57:56.0', '2020-01-31 22:58:57.0'),
+(4, 'Qux', '2020-02-28', '23:59:58', '2020-01-27 22:58:57.0', '2020-02-28 23:59:58.0');
+SELECT * FROM `sampledb`.`sample_table`;
+# MariaDB # AUTO_INCREMENT # INSERT 
+/*
+'NO_AUTO_CREATE_USER' is deprecated in MySQL
+*/
+SET SQL_MODE='no_auto_value_on_zero';
+INSERT INTO `sample_table`  
+(`id`, `username`, `login_date`, `login_time`, `created_at`, `updated_at`)
+VALUES
+(3, 'Baz', '2020-01-31', '22:58:57', '2020-01-20 21:57:56.0', '2020-01-31 22:58:57.0'),
+(4, 'Qux', '2020-02-28', '23:59:58', '2020-01-27 22:58:57.0', '2020-02-28 23:59:58.0');
+SELECT * FROM `sampledb`.`sample_table`;
+
+# AUTO_INCREMENT # Reset
+ALTER TABLE sampledb.sample_table AUTO_INCREMENT = 10;
+
+# AUTO_INCREMENT 
+SELECT AUTO_INCREMENT FROM 
+information_schema.TABLES 
+WHERE `TABLE_SCHEMA`='sampledb' 
+AND `TABLE_NAME`='sample_table';
+
+INSERT INTO sample_table
+SELECT 10, 'QUUX', '2021-01-31', '22:58:57', '2021-01-20 21:57:56.0', '2021-01-31 22:58:57.0'
+UNION ALL
+SELECT 11, 'QUUZ', '2021-02-28', '23:59:58', '2021-01-27 22:58:57.0', '2021-02-28 23:59:58.0';
+SELECT * FROM `sampledb`.`sample_table`;
+
+# @@tmpdir 
+SELECT @@tmpdir;
+
+# Export Table Data to CSV # CANNOT Overwrite # Specific Directory
+# Note # D:/MySQLExport/CSV/sample_table_data.csv
+# Warning (code 1287): '<select expression> INTO <destination>;' is deprecated and will be removed in a future release. Please use 'SELECT <select list> INTO <destination> FROM...' i
+nstead
+# SELECT * FROM `sampledb`.`sample_table` INTO OUTFILE 'D:/MySQLExport/CSV/sample_table_data.csv' FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n';
+SELECT id, username, login_date, login_time, created_at, updated_at INTO OUTFILE 'D:/MySQLExport/CSV/sample_table_data.csv' FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' FROM `sampledb`.`sample_table`;
+
+
+# MySQL Shell
+/exit
+# OR
+/quit
+# OR # XAMPP MySQL Shell
+exit
+# OR
+quit
+
+
+
+
+# Export Table Data to Console REPL
+$ winpty mysql -u root -p -e "SELECT * FROM sampledb.sample_table;"
+> mysql -u root -p -e "SELECT * FROM sampledb.sample_table;"
+
+# Export Table Data to CSV # CANNOT Overwrite # Default Directory
+$ winpty mysql -u root -p sampledb -e "SELECT * FROM sampledb.sample_table INTO OUTFILE 'sample_table_data.csv';"
+$ cat "/C/Users/rajanis/Downloads/XAMPP/xampp/mysql/data/sampledb/sample_table_data.csv"
+> mysql -u root -p sampledb -e "SELECT * FROM sampledb.sample_table INTO OUTFILE 'sample_table_data.csv';"
+> type "C:\Users\rajanis\Downloads\XAMPP\xampp\mysql\data\sampledb\sample_table_data.csv"
+
+# Export Table Data to CSV # CANNOT Overwrite # Specific Directory
+$ mkdir -p "/D/MySQLExport/CSV"
+> mkdir "D:\MySQLExport\CSV"
+# Note # D:/MySQLExport/CSV/sample_table_data.csv
+$ winpty mysql -u root -p sampledb -e "SELECT * FROM sampledb.sample_table INTO OUTFILE 'D:/MySQLExport/CSV/sample_table_data.csv';"
+$ cat "/D/MySQLExport/CSV/sample_table_data.csv"
+# Note # D:\\MySQLExport\\CSV\\sample_table_data.csv
+> mysql -u root -p sampledb -e "SELECT * FROM sampledb.sample_table INTO OUTFILE 'D:\\MySQLExport\\CSV\\sample_table_data.csv';"
+> type "D:\MySQLExport\CSV\sample_table_data.csv"
+
+# Export Table Data to CSV # CANNOT Overwrite # ENCLOSED BY '"'
+# Note # D:/MySQLExport/CSV/sample_table_data.csv
+$ winpty mysql -u root -p sampledb -e "SELECT * FROM sampledb.sample_table INTO OUTFILE 'D:/MySQLExport/CSV/sample_table_data.csv' FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\n';"
+# Note # D:\\MySQLExport\\CSV\\sample_table_data.csv
+> mysql -u root -p sampledb -e "SELECT * FROM sampledb.sample_table INTO OUTFILE 'D:\\MySQLExport\\CSV\\sample_table_data.csv' FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\n';"
+
+
+
+
+# MySQL $ winpty mysqlsh --version $ winpty mysqlsh --sql # \connect --mysql root@localhost
+$ export PATH=$PATH:"/C/Users/rajanis/Downloads/MySQL/MySQL Shell/mysql-shell-8.0.25-windows-x86-64bit/bin/"
+
+# XAMPP $ xampp-control $ xampp_start $ xampp_stop
+# MySQL # MariaDB $ winpty mysqladmin --version $ winpty mysqladmin -u root password $ mysql_start.bat $ winpty mysql --version $ winpty mysql -u root -p $ mysql_stop.bat
+$ export PATH=$PATH:"/C/Users/rajanis/Downloads/XAMPP/xampp/:/C/Users/rajanis/Downloads/XAMPP/xampp/mysql/bin/"
+
+
+# MySQL > mysqlsh --version > mysqlsh --sql # \connect --mysql root@localhost
+> set path=%path%;C:\Users\rajanis\Downloads\MySQL\MySQL Shell\mysql-shell-8.0.25-windows-x86-64bit\bin\
+
+# XAMPP > xampp-control > xampp_start > xampp_stop
+# MySQL # MariaDB > mysqladmin --version > mysqladmin -u root password > mysql_start.bat > mysql --version > mysql -u root -p > mysql_stop.bat
+> set path=%path%;C:\Users\rajanis\Downloads\XAMPP\xampp\;C:\Users\rajanis\Downloads\XAMPP\xampp\mysql\bin\
+
+
+# Data: C:\Users\rajanis\Downloads\XAMPP\xampp\mysql\data
+
+
+[
+$ winpty mysqladmin -u root proc stat
+$ winpty mysqladmin -u root password
+New password: **********
+Confirm new password: **********
+
+> mysqladmin -u root password
+> New password: **********
+> Confirm new password: **********
+
+# Azure # <Azure domain name> # OR # <Azure domain IP address> 
+$ winpty mysqlsh --sql # \connect --mysql <user>@<Azure domain name>
+> mysqlsh --sql # \connect --mysql <user>@<Azure domain name>
+# OR
+$ winpty mysql -h <Azure domain name> -u sampledb --ssl -p
+> mysql -h <Azure domain name> -u sampledb --ssl -p
+]
+
+
+
+$ export PATH=$PATH:"/C/Users/rajanis/Downloads/XAMPP/xampp/:/C/Users/rajanis/Downloads/XAMPP/xampp/mysql/bin/"
+
+$ winpty mysqladmin --version
+C:/Users/rajanis/Downloads/XAMPP/xampp/mysql/bin/mysqladmin.exe  Ver 9.1 Distrib 10.4.14-MariaDB, for Win64 on AMD64
+
+$ winpty mysql --version
+C:/Users/rajanis/Downloads/XAMPP/xampp/mysql/bin/mysql.exe  Ver 15.1 Distrib 10.4.14-MariaDB, for Win64 (AMD64), source revision ddffcad64c9ff3299037eed9df1bc92d51f8d07e
+
+$ export PATH=$PATH:"/C/Users/rajanis/Downloads/MySQL/MySQL Shell/mysql-shell-8.0.25-windows-x86-64bit/bin/"
+
+$ winpty mysqlsh --version
+C:/Users/rajanis/Downloads/MySQL/MySQL Shell/mysql-shell-8.0.25-windows-x86-64bit/bin/mysqlsh.exe   Ver 8.0.25 for Win64 on x86_64 - for MySQL 8.0.25 (MySQL Community Server (GPL))
+
+$ winpty mysqlsh --sql
+MySQL Shell 8.0.25
+
+Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+Oracle is a registered trademark of Oracle Corporation and/or its affiliates.
+Other names may be trademarks of their respective owners.
+
+Type '\help' or '\?' for help; '\quit' to exit.
+ MySQL  SQL > \?
+The Shell Help is organized in categories and topics. To get help for a
+specific category or topic use: \? <pattern>
+
+The <pattern> argument should be the name of a category or a topic.
+
+The pattern is a filter to identify topics for which help is required, it can
+use the following wildcards:
+
+- ? matches any single character.
+- * matches any character sequence.
+
+The following are the main help categories:
+
+ - Shell Commands Provides details about the available built-in shell commands.
+ - SQL Syntax     Entry point to retrieve syntax help on SQL statements.
+
+The available topics include:
+
+- The available shell commands.
+- Any word that is part of an SQL statement.
+- Command Line - invoking built-in shell functions without entering interactive
+  mode.
+
+SHELL COMMANDS
+
+The shell commands allow executing specific operations including updating the
+shell configuration.
+
+The following shell commands are available:
+
+ - \                   Start multi-line input when in SQL mode.
+ - \connect    (\c)    Connects the shell to a MySQL server and assigns the
+                       global session.
+ - \disconnect         Disconnects the global session.
+ - \edit       (\e)    Launch a system editor to edit a command to be executed.
+ - \exit               Exits the MySQL Shell, same as \quit.
+ - \G                  Send command to mysql server, display result vertically.
+ - \g                  Send command to mysql server.
+ - \help       (\?,\h) Prints help information about a specific topic.
+ - \history            View and edit command line history.
+ - \js                 Switches to JavaScript processing mode.
+ - \nopager            Disables the current pager.
+ - \nowarnings (\w)    Don't show warnings after every statement.
+ - \option             Allows working with the available shell options.
+ - \pager      (\P)    Sets the current pager.
+ - \py                 Switches to Python processing mode.
+ - \quit       (\q)    Exits the MySQL Shell.
+ - \reconnect          Reconnects the global session.
+ - \rehash             Refresh the autocompletion cache.
+ - \show               Executes the given report with provided options and
+                       arguments.
+ - \source     (\.)    Loads and executes a script from a file.
+ - \sql                Executes SQL statement or switches to SQL processing
+                       mode when no statement is given.
+ - \status     (\s)    Print information about the current global session.
+ - \system     (\!)    Execute a system shell command.
+ - \use        (\u)    Sets the active schema.
+ - \warnings   (\W)    Show warnings after every statement.
+ - \watch              Executes the given report with provided options and
+                       arguments in a loop.
+
+EXAMPLES
+\? sql syntax
+      Displays the main SQL help categories.
+
+\? select
+      Displays information about the SELECT SQL statement.
+ MySQL  SQL > \connect --mysql root@localhost
+Creating a Classic session to 'root@localhost'
+Please provide the password for 'root@localhost': **********
+Save password for 'root@localhost'? [Y]es/[N]o/Ne[v]er (default No): v
+Fetching schema names for autocompletion... Press ^C to stop.
+Your MySQL connection id is 8
+Server version: 10.4.14-MariaDB mariadb.org binary distribution
+No default schema selected; type \use <schema> to set one.
+ MySQL  localhost:3306  SQL > SELECT * FROM mysql.user\G
+*************************** 1. row ***************************
+                  Host: localhost
+                  User: root
+              Password: *2196B3F553BEA900D04572FDC220256FB63DAFA6
+           Select_priv: Y
+           Insert_priv: Y
+           Update_priv: Y
+           Delete_priv: Y
+           Create_priv: Y
+             Drop_priv: Y
+           Reload_priv: Y
+         Shutdown_priv: Y
+          Process_priv: Y
+             File_priv: Y
+            Grant_priv: Y
+       References_priv: Y
+            Index_priv: Y
+            Alter_priv: Y
+          Show_db_priv: Y
+            Super_priv: Y
+ Create_tmp_table_priv: Y
+      Lock_tables_priv: Y
+          Execute_priv: Y
+       Repl_slave_priv: Y
+      Repl_client_priv: Y
+      Create_view_priv: Y
+        Show_view_priv: Y
+   Create_routine_priv: Y
+    Alter_routine_priv: Y
+      Create_user_priv: Y
+            Event_priv: Y
+          Trigger_priv: Y
+Create_tablespace_priv: Y
+   Delete_history_priv: Y
+              ssl_type:
+            ssl_cipher:
+           x509_issuer:
+          x509_subject:
+         max_questions: 0
+           max_updates: 0
+       max_connections: 0
+  max_user_connections: 0
+                plugin: mysql_native_password
+ authentication_string: *2196B3F553BEA900D04572FDC220256FB63DAFA6
+      password_expired: N
+               is_role: N
+          default_role:
+    max_statement_time: 0.000000
+*************************** 2. row ***************************
+                  Host: 127.0.0.1
+                  User: root
+              Password:
+           Select_priv: Y
+           Insert_priv: Y
+           Update_priv: Y
+           Delete_priv: Y
+           Create_priv: Y
+             Drop_priv: Y
+           Reload_priv: Y
+         Shutdown_priv: Y
+          Process_priv: Y
+             File_priv: Y
+            Grant_priv: Y
+       References_priv: Y
+            Index_priv: Y
+            Alter_priv: Y
+          Show_db_priv: Y
+            Super_priv: Y
+ Create_tmp_table_priv: Y
+      Lock_tables_priv: Y
+          Execute_priv: Y
+       Repl_slave_priv: Y
+      Repl_client_priv: Y
+      Create_view_priv: Y
+        Show_view_priv: Y
+   Create_routine_priv: Y
+    Alter_routine_priv: Y
+      Create_user_priv: Y
+            Event_priv: Y
+          Trigger_priv: Y
+Create_tablespace_priv: Y
+   Delete_history_priv: Y
+              ssl_type:
+            ssl_cipher:
+           x509_issuer:
+          x509_subject:
+         max_questions: 0
+           max_updates: 0
+       max_connections: 0
+  max_user_connections: 0
+                plugin:
+ authentication_string:
+      password_expired: N
+               is_role: N
+          default_role:
+    max_statement_time: 0.000000
+*************************** 3. row ***************************
+                  Host: ::1
+                  User: root
+              Password:
+           Select_priv: Y
+           Insert_priv: Y
+           Update_priv: Y
+           Delete_priv: Y
+           Create_priv: Y
+             Drop_priv: Y
+           Reload_priv: Y
+         Shutdown_priv: Y
+          Process_priv: Y
+             File_priv: Y
+            Grant_priv: Y
+       References_priv: Y
+            Index_priv: Y
+            Alter_priv: Y
+          Show_db_priv: Y
+            Super_priv: Y
+ Create_tmp_table_priv: Y
+      Lock_tables_priv: Y
+          Execute_priv: Y
+       Repl_slave_priv: Y
+      Repl_client_priv: Y
+      Create_view_priv: Y
+        Show_view_priv: Y
+   Create_routine_priv: Y
+    Alter_routine_priv: Y
+      Create_user_priv: Y
+            Event_priv: Y
+          Trigger_priv: Y
+Create_tablespace_priv: Y
+   Delete_history_priv: Y
+              ssl_type:
+            ssl_cipher:
+           x509_issuer:
+          x509_subject:
+         max_questions: 0
+           max_updates: 0
+       max_connections: 0
+  max_user_connections: 0
+                plugin:
+ authentication_string:
+      password_expired: N
+               is_role: N
+          default_role:
+    max_statement_time: 0.000000
+*************************** 4. row ***************************
+                  Host: localhost
+                  User: pma
+              Password:
+           Select_priv: N
+           Insert_priv: N
+           Update_priv: N
+           Delete_priv: N
+           Create_priv: N
+             Drop_priv: N
+           Reload_priv: N
+         Shutdown_priv: N
+          Process_priv: N
+             File_priv: N
+            Grant_priv: N
+       References_priv: N
+            Index_priv: N
+            Alter_priv: N
+          Show_db_priv: N
+            Super_priv: N
+ Create_tmp_table_priv: N
+      Lock_tables_priv: N
+          Execute_priv: N
+       Repl_slave_priv: N
+      Repl_client_priv: N
+      Create_view_priv: N
+        Show_view_priv: N
+   Create_routine_priv: N
+    Alter_routine_priv: N
+      Create_user_priv: N
+            Event_priv: N
+          Trigger_priv: N
+Create_tablespace_priv: N
+   Delete_history_priv: N
+              ssl_type:
+            ssl_cipher:
+           x509_issuer:
+          x509_subject:
+         max_questions: 0
+           max_updates: 0
+       max_connections: 0
+  max_user_connections: 0
+                plugin: mysql_native_password
+ authentication_string:
+      password_expired: N
+               is_role: N
+          default_role:
+    max_statement_time: 0.000000
+4 rows in set (0.0067 sec)
+ MySQL  localhost:3306  SQL > SELECT Host, User FROM mysql.user;
++-----------+--------+
+| Host      | User   |
++-----------+--------+
+| 127.0.0.1 | root   |
+| ::1       | root   |
+| localhost | pma    |
+| localhost | root   |
++-----------+--------+
+4 rows in set (0.0013 sec)
+ MySQL  localhost:3306  SQL > CREATE USER 'rajani'@'localhost' IDENTIFIED BY '**********************';	                      
+Query OK, 0 rows affected (0.0204 sec)
+ MySQL  localhost:3306  SQL > GRANT ALL PRIVILEGES ON * . * TO 'rajani'@'localhost';
+Query OK, 0 rows affected (0.0104 sec)
+ MySQL  localhost:3306  SQL > SHOW GRANTS FOR 'rajani'@'localhost';
++------------------------------------------------------------------------------------------------------------------------+
+| Grants for rajani@localhost                                                                                            |
++------------------------------------------------------------------------------------------------------------------------+
+| GRANT ALL PRIVILEGES ON *.* TO `rajani`@`localhost` IDENTIFIED BY PASSWORD '*B1B34EE4FEDB43191D88FEE7ADD723149736407B' |
++------------------------------------------------------------------------------------------------------------------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  SQL > SELECT Host, User FROM mysql.user;
++-----------+--------+
+| Host      | User   |
++-----------+--------+
+| 127.0.0.1 | root   |
+| ::1       | root   |
+| localhost | pma    |
+| localhost | rajani |
+| localhost | root   |
++-----------+--------+
+5 rows in set (0.0013 sec)
+ MySQL  localhost:3306  SQL > \connect --mysql rajani@localhost
+Creating a Classic session to 'rajani@localhost'
+Please provide the password for 'rajani@localhost': **********************
+Save password for 'rajani@localhost'? [Y]es/[N]o/Ne[v]er (default No): v
+Fetching schema names for autocompletion... Press ^C to stop.
+Closing old connection...
+Your MySQL connection id is 9
+Server version: 10.4.14-MariaDB mariadb.org binary distribution
+No default schema selected; type \use <schema> to set one.
+ MySQL  localhost:3306  SQL > SELECT CURRENT_USER();
++------------------+
+| CURRENT_USER()   |
++------------------+
+| rajani@localhost |
++------------------+
+1 row in set (0.0195 sec)
+ MySQL  localhost:3306  SQL > \connect --mysql root@localhost
+Creating a Classic session to 'root@localhost'
+Please provide the password for 'root@localhost': **********
+Fetching schema names for autocompletion... Press ^C to stop.
+Closing old connection...
+Your MySQL connection id is 10
+Server version: 10.4.14-MariaDB mariadb.org binary distribution
+No default schema selected; type \use <schema> to set one.
+ MySQL  localhost:3306  SQL > SELECT CURRENT_USER();
++----------------+
+| CURRENT_USER() |
++----------------+
+| root@localhost |
++----------------+
+1 row in set (0.0001 sec)
+ MySQL  localhost:3306  SQL > ALTER USER 'rajani'@'localhost' IDENTIFIED BY '***************';	                      
+Query OK, 0 rows affected (0.0184 sec)
+ MySQL  localhost:3306  SQL > \connect --mysql rajani@localhost
+Creating a Classic session to 'rajani@localhost'
+Please provide the password for 'rajani@localhost': ***************
+Save password for 'rajani@localhost'? [Y]es/[N]o/Ne[v]er (default No): v
+Fetching schema names for autocompletion... Press ^C to stop.
+Closing old connection...
+Your MySQL connection id is 9
+Server version: 10.4.14-MariaDB mariadb.org binary distribution
+No default schema selected; type \use <schema> to set one.
+ MySQL  localhost:3306  SQL > SELECT CURRENT_USER();
++------------------+
+| CURRENT_USER()   |
++------------------+
+| rajani@localhost |
++------------------+
+1 row in set (0.0195 sec)
+ MySQL  localhost:3306  SQL > \connect --mysql root@localhost
+Creating a Classic session to 'root@localhost'
+Please provide the password for 'root@localhost': **********
+Fetching schema names for autocompletion... Press ^C to stop.
+Closing old connection...
+Your MySQL connection id is 10
+Server version: 10.4.14-MariaDB mariadb.org binary distribution
+No default schema selected; type \use <schema> to set one.
+ MySQL  localhost:3306  SQL > SELECT CURRENT_USER();
++----------------+
+| CURRENT_USER() |
++----------------+
+| root@localhost |
++----------------+
+1 row in set (0.0001 sec)
+ MySQL  localhost:3306  SQL > DROP USER 'rajani'@'localhost';
+Query OK, 0 rows affected (0.0108 sec)
+ MySQL  localhost:3306  SQL > SELECT Host, User FROM mysql.user;
++-----------+------+
+| Host      | User |
++-----------+------+
+| 127.0.0.1 | root |
+| ::1       | root |
+| localhost | pma  |
+| localhost | root |
++-----------+------+
+4 rows in set (0.0012 sec)
+ MySQL  localhost:3306  SQL > SELECT VERSION();
++-----------------+
+| VERSION()       |
++-----------------+
+| 10.4.14-MariaDB |
++-----------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  SQL > SELECT @@version;
++-----------------+
+| @@version       |
++-----------------+
+| 10.4.14-MariaDB |
++-----------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  SQL > SHOW VARIABLES LIKE "%version%";
++-----------------------------------+------------------------------------------+
+| Variable_name                     | Value                                    |
++-----------------------------------+------------------------------------------+
+| in_predicate_conversion_threshold | 1000                                     |
+| innodb_version                    | 10.4.14                                  |
+| protocol_version                  | 10                                       |
+| slave_type_conversions            |                                          |
+| system_versioning_alter_history   | ERROR                                    |
+| system_versioning_asof            | DEFAULT                                  |
+| tls_version                       | TLSv1.1,TLSv1.2,TLSv1.3                  |
+| version                           | 10.4.14-MariaDB                          |
+| version_comment                   | mariadb.org binary distribution          |
+| version_compile_machine           | x64                                      |
+| version_compile_os                | Win64                                    |
+| version_malloc_library            | system                                   |
+| version_source_revision           | ddffcad64c9ff3299037eed9df1bc92d51f8d07e |
+| version_ssl_library               | WolfSSL 4.4.0                            |
++-----------------------------------+------------------------------------------+
+14 rows in set (0.0009 sec)
+ MySQL  localhost:3306  SQL > SHOW GLOBAL VARIABLES LIKE '%version%';
++-----------------------------------+------------------------------------------+
+| Variable_name                     | Value                                    |
++-----------------------------------+------------------------------------------+
+| in_predicate_conversion_threshold | 1000                                     |
+| innodb_version                    | 10.4.14                                  |
+| protocol_version                  | 10                                       |
+| slave_type_conversions            |                                          |
+| system_versioning_alter_history   | ERROR                                    |
+| system_versioning_asof            | DEFAULT                                  |
+| tls_version                       | TLSv1.1,TLSv1.2,TLSv1.3                  |
+| version                           | 10.4.14-MariaDB                          |
+| version_comment                   | mariadb.org binary distribution          |
+| version_compile_machine           | x64                                      |
+| version_compile_os                | Win64                                    |
+| version_malloc_library            | system                                   |
+| version_source_revision           | ddffcad64c9ff3299037eed9df1bc92d51f8d07e |
+| version_ssl_library               | WolfSSL 4.4.0                            |
++-----------------------------------+------------------------------------------+
+14 rows in set (0.0009 sec)
+ MySQL  localhost:3306  SQL > SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| customerdb         |
+| information_schema |
+| mysql              |
+| performance_schema |
+| phpmyadmin         |
+| test               |
++--------------------+
+6 rows in set (0.0009 sec)
+ MySQL  localhost:3306  SQL > USE `mysql`;
+Default schema set to `mysql`.
+Fetching table and column names from `mysql` for auto-completion... Press ^C to stop.
+Error during auto-completion cache update: Table 'mysql.gtid_slave_pos' doesn't exist in engine
+ MySQL  localhost:3306  mysql  SQL > SELECT DATABASE();
++------------+
+| DATABASE() |
++------------+
+| mysql      |
++------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  mysql  SQL > SELECT DATABASE() FROM DUAL;
++------------+
+| DATABASE() |
++------------+
+| mysql      |
++------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  mysql  SQL > SHOW TABLES;
++---------------------------+
+| Tables_in_mysql           |
++---------------------------+
+| column_stats              |
+| columns_priv              |
+| db                        |
+| event                     |
+| func                      |
+| general_log               |
+| global_priv               |
+| gtid_slave_pos            |
+| help_category             |
+| help_keyword              |
+| help_relation             |
+| help_topic                |
+| index_stats               |
+| innodb_index_stats        |
+| innodb_table_stats        |
+| plugin                    |
+| proc                      |
+| procs_priv                |
+| proxies_priv              |
+| roles_mapping             |
+| servers                   |
+| slow_log                  |
+| table_stats               |
+| tables_priv               |
+| time_zone                 |
+| time_zone_leap_second     |
+| time_zone_name            |
+| time_zone_transition      |
+| time_zone_transition_type |
+| transaction_registry      |
+| user                      |
++---------------------------+
+31 rows in set (0.0010 sec)
+ MySQL  localhost:3306  mysql  SQL > SELECT `COLUMN_NAME`
+                                  -> FROM `INFORMATION_SCHEMA`.`COLUMNS`
+                                  -> WHERE `TABLE_SCHEMA`='mysql'
+                                  -> AND `TABLE_NAME`='db';
++-----------------------+
+| COLUMN_NAME           |
++-----------------------+
+| Host                  |
+| Db                    |
+| User                  |
+| Select_priv           |
+| Insert_priv           |
+| Update_priv           |
+| Delete_priv           |
+| Create_priv           |
+| Drop_priv             |
+| Grant_priv            |
+| References_priv       |
+| Index_priv            |
+| Alter_priv            |
+| Create_tmp_table_priv |
+| Lock_tables_priv      |
+| Create_view_priv      |
+| Show_view_priv        |
+| Create_routine_priv   |
+| Alter_routine_priv    |
+| Execute_priv          |
+| Event_priv            |
+| Trigger_priv          |
+| Delete_history_priv   |
++-----------------------+
+23 rows in set (0.0094 sec)
+ MySQL  localhost:3306  sampledb  SQL > SHOW PROCEDURE STATUS;
+Empty set (0.0135 sec)
+ MySQL  localhost:3306  sampledb  SQL > SHOW FUNCTION STATUS;
+Empty set (0.0051 sec)
+ MySQL  localhost:3306  sampledb  SQL > CREATE DATABASE IF NOT EXISTS `sampledb`;
+Query OK, 1 row affected (0.0105 sec)
+ MySQL  localhost:3306  sampledb  SQL > SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| customerdb         |
+| information_schema |
+| mysql              |
+| performance_schema |
+| phpmyadmin         |
+| sampledb           |
+| test               |
++--------------------+
+7 rows in set (0.0010 sec)
+ MySQL  localhost:3306  sampledb  SQL > DROP DATABASE IF EXISTS `sampledb`;
+Query OK, 0 rows affected (0.0022 sec)
+ MySQL  localhost:3306  sampledb  SQL > SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| customerdb         |
+| information_schema |
+| mysql              |
+| performance_schema |
+| phpmyadmin         |
+| test               |
++--------------------+
+6 rows in set (0.0011 sec)
+ MySQL  localhost:3306  sampledb  SQL > CREATE DATABASE IF NOT EXISTS `sampledb`;
+Query OK, 1 row affected (0.0015 sec)
+ MySQL  localhost:3306  sampledb  SQL > SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| customerdb         |
+| information_schema |
+| mysql              |
+| performance_schema |
+| phpmyadmin         |
+| sampledb           |
+| test               |
++--------------------+
+7 rows in set (0.0008 sec)
+ MySQL  localhost:3306  sampledb  SQL > USE `sampledb`;
+Default schema set to `sampledb`.
+Fetching table and column names from `sampledb` for auto-completion... Press ^C to stop.
+ MySQL  localhost:3306  sampledb  SQL > SELECT DATABASE();
++------------+
+| DATABASE() |
++------------+
+| sampledb   |
++------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT DATABASE() FROM DUAL;
++------------+
+| DATABASE() |
++------------+
+| sampledb   |
++------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  sampledb  SQL > CREATE TABLE IF NOT EXISTS `sample_table`
+                                     -> (
+                                     ->     `id` INT NOT NULL AUTO_INCREMENT,
+                                     ->     `username` VARCHAR(50) NOT NULL,
+                                     ->     `login_date` DATE NOT NULL,
+                                     ->     `login_time` TIME NOT NULL,
+                                     ->     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                     ->     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                     ->     PRIMARY KEY(`id`),
+                                     ->     CONSTRAINT `idx_username` UNIQUE(`username`)
+                                     -> );
+Query OK, 0 rows affected (0.0181 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT * FROM `sampledb`.`sample_table`;
+Empty set (0.0040 sec)
+ MySQL  localhost:3306  sampledb  SQL > SHOW TABLES;
++--------------------+
+| Tables_in_sampledb |
++--------------------+
+| sample_table       |
++--------------------+
+1 row in set (0.0007 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT `COLUMN_NAME`
+                                     -> FROM `INFORMATION_SCHEMA`.`COLUMNS`
+                                     -> WHERE `TABLE_SCHEMA`='sampledb'
+                                     -> AND `TABLE_NAME`='sample_table';
++-------------+
+| COLUMN_NAME |
++-------------+
+| id          |
+| username    |
+| login_date  |
+| login_time  |
+| created_at  |
+| updated_at  |
++-------------+
+6 rows in set (0.0004 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT AUTO_INCREMENT FROM
+                                     -> information_schema.TABLES
+                                     -> WHERE `TABLE_SCHEMA`='sampledb'
+                                     -> AND `TABLE_NAME`='sample_table';
++----------------+
+| AUTO_INCREMENT |
++----------------+
+|              1 |
++----------------+
+1 row in set (0.0006 sec)
+ MySQL  localhost:3306  sampledb  SQL > INSERT INTO `sampledb`.`sample_table`
+                                     -> (`username`, `login_date`, `login_time`, `created_at`, `updated_at`)
+                                     -> VALUES
+                                     -> ('Foo', '2018-01-31', '22:58:57', '2018-01-20 21:57:56.0', '2018-01-31 22:58:57.0'),
+                                     -> ('Bar', '2019-02-28', '23:59:58', '2019-01-27 22:58:57.0', '2019-02-28 23:59:58.0');
+Query OK, 2 rows affected (0.0126 sec)
+
+Records: 2  Duplicates: 0  Warnings: 0
+ MySQL  localhost:3306  sampledb  SQL > SELECT * FROM `sampledb`.`sample_table`;
++----+----------+------------+------------+---------------------+---------------------+
+| id | username | login_date | login_time | created_at          | updated_at          |
++----+----------+------------+------------+---------------------+---------------------+
+|  1 | Foo      | 2018-01-31 | 22:58:57   | 2018-01-20 21:57:56 | 2018-01-31 22:58:57 |
+|  2 | Bar      | 2019-02-28 | 23:59:58   | 2019-01-27 22:58:57 | 2019-02-28 23:59:58 |
++----+----------+------------+------------+---------------------+---------------------+
+2 rows in set (0.0004 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT AUTO_INCREMENT FROM
+                                     -> information_schema.TABLES
+                                     -> WHERE `TABLE_SCHEMA`='sampledb'
+                                     -> AND `TABLE_NAME`='sample_table';
++----------------+
+| AUTO_INCREMENT |
++----------------+
+|              3 |
++----------------+
+1 row in set (0.0005 sec)
+ MySQL  localhost:3306  sampledb  SQL > SET SQL_MODE='no_auto_value_on_zero';
+Query OK, 0 rows affected (0.0212 sec)
+ MySQL  localhost:3306  sampledb  SQL > INSERT INTO `sample_table`
+                                     -> (`id`, `username`, `login_date`, `login_time`, `created_at`, `updated_at`)
+                                     -> VALUES
+                                     -> (3, 'Baz', '2020-01-31', '22:58:57', '2020-01-20 21:57:56.0', '2020-01-31 22:58:57.0'),
+                                     -> (4, 'Qux', '2020-02-28', '23:59:58', '2020-01-27 22:58:57.0', '2020-02-28 23:59:58.0');
+Query OK, 2 rows affected (0.0128 sec)
+
+Records: 2  Duplicates: 0  Warnings: 0
+ MySQL  localhost:3306  sampledb  SQL > SELECT * FROM `sampledb`.`sample_table`;
++----+----------+------------+------------+---------------------+---------------------+
+| id | username | login_date | login_time | created_at          | updated_at          |
++----+----------+------------+------------+---------------------+---------------------+
+|  1 | Foo      | 2018-01-31 | 22:58:57   | 2018-01-20 21:57:56 | 2018-01-31 22:58:57 |
+|  2 | Bar      | 2019-02-28 | 23:59:58   | 2019-01-27 22:58:57 | 2019-02-28 23:59:58 |
+|  3 | Baz      | 2020-01-31 | 22:58:57   | 2020-01-20 21:57:56 | 2020-01-31 22:58:57 |
+|  4 | Qux      | 2020-02-28 | 23:59:58   | 2020-01-27 22:58:57 | 2020-02-28 23:59:58 |
++----+----------+------------+------------+---------------------+---------------------+
+4 rows in set (0.0005 sec)
+ MySQL  localhost:3306  sampledb  SQL > ALTER TABLE sampledb.sample_table AUTO_INCREMENT = 10;
+Query OK, 0 rows affected (0.0170 sec)
+
+Records: 0  Duplicates: 0  Warnings: 0
+ MySQL  localhost:3306  sampledb  SQL > SELECT AUTO_INCREMENT FROM
+                                     -> information_schema.TABLES
+                                     -> WHERE `TABLE_SCHEMA`='sampledb'
+                                     -> AND `TABLE_NAME`='sample_table';
++----------------+
+| AUTO_INCREMENT |
++----------------+
+|             10 |
++----------------+
+1 row in set (0.0005 sec)
+ MySQL  localhost:3306  sampledb  SQL > INSERT INTO sample_table
+                                     -> SELECT 10, 'QUUX', '2021-01-31', '22:58:57', '2021-01-20 21:57:56.0', '2021-01-31 22:58:57.0'
+                                     -> UNION ALL
+                                     -> SELECT 11, 'QUUZ', '2021-02-28', '23:59:58', '2021-01-27 22:58:57.0', '2021-02-28 23:59:58.0';
+Query OK, 2 rows affected (0.0114 sec)
+
+Records: 2  Duplicates: 0  Warnings: 0
+ MySQL  localhost:3306  sampledb  SQL > SELECT * FROM `sampledb`.`sample_table`;
++----+----------+------------+------------+---------------------+---------------------+
+| id | username | login_date | login_time | created_at          | updated_at          |
++----+----------+------------+------------+---------------------+---------------------+
+|  1 | Foo      | 2018-01-31 | 22:58:57   | 2018-01-20 21:57:56 | 2018-01-31 22:58:57 |
+|  2 | Bar      | 2019-02-28 | 23:59:58   | 2019-01-27 22:58:57 | 2019-02-28 23:59:58 |
+|  3 | Baz      | 2020-01-31 | 22:58:57   | 2020-01-20 21:57:56 | 2020-01-31 22:58:57 |
+|  4 | Qux      | 2020-02-28 | 23:59:58   | 2020-01-27 22:58:57 | 2020-02-28 23:59:58 |
+| 10 | QUUX     | 2021-01-31 | 22:58:57   | 2021-01-20 21:57:56 | 2021-01-31 22:58:57 |
+| 11 | QUUZ     | 2021-02-28 | 23:59:58   | 2021-01-27 22:58:57 | 2021-02-28 23:59:58 |
++----+----------+------------+------------+---------------------+---------------------+
+6 rows in set (0.0004 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT @@tmpdir;
++------------------------------------------+
+| @@tmpdir                                 |
++------------------------------------------+
+| /Users/rajanis/Downloads/XAMPP/xampp/tmp |
++------------------------------------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT id, username, login_date, login_time, created_at, updated_at INTO OUTFILE 'D:/MySQLExport/CSV/sample_table_data.csv' FIELDS TERMINATE
+D BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' FROM `sampledb`.`sample_table`;
+Query OK, 6 rows affected (0.0021 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT CURDATE();
++------------+
+| CURDATE()  |
++------------+
+| 2021-07-31 |
++------------+
+1 row in set (0.0005 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT CURRENT_DATE();
++----------------+
+| CURRENT_DATE() |
++----------------+
+| 2021-07-31     |
++----------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT CURRENT_DATE;
++--------------+
+| CURRENT_DATE |
++--------------+
+| 2021-07-31   |
++--------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT CURRENT_TIME();
++----------------+
+| CURRENT_TIME() |
++----------------+
+| 03:08:02       |
++----------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT CURRENT_TIME;
++--------------+
+| CURRENT_TIME |
++--------------+
+| 03:08:19     |
++--------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT CURRENT_TIMESTAMP();
++---------------------+
+| CURRENT_TIMESTAMP() |
++---------------------+
+| 2021-07-31 03:08:26 |
++---------------------+
+1 row in set (0.0004 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT CURRENT_TIMESTAMP;
++---------------------+
+| CURRENT_TIMESTAMP   |
++---------------------+
+| 2021-07-31 03:08:33 |
++---------------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT CURTIME();
++-----------+
+| CURTIME() |
++-----------+
+| 03:08:40  |
++-----------+
+1 row in set (0.0103 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT LOCALTIME;
++---------------------+
+| LOCALTIME           |
++---------------------+
+| 2021-07-31 03:08:47 |
++---------------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT LOCALTIMESTAMP();
++---------------------+
+| LOCALTIMESTAMP()    |
++---------------------+
+| 2021-07-31 03:08:55 |
++---------------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT LOCALTIMESTAMP;
++---------------------+
+| LOCALTIMESTAMP      |
++---------------------+
+| 2021-07-31 03:09:07 |
++---------------------+
+1 row in set (0.0005 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT NOW();
++---------------------+
+| NOW()               |
++---------------------+
+| 2021-07-31 03:09:13 |
++---------------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT SYSDATE();
++---------------------+
+| SYSDATE()           |
++---------------------+
+| 2021-07-31 03:09:19 |
++---------------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT UNIX_TIMESTAMP();
++------------------+
+| UNIX_TIMESTAMP() |
++------------------+
+|       1627681167 |
++------------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT UTC_DATE();
++------------+
+| UTC_DATE() |
++------------+
+| 2021-07-30 |
++------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT UTC_TIME();
++------------+
+| UTC_TIME() |
++------------+
+| 21:39:41   |
++------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  sampledb  SQL > SELECT UTC_TIMESTAMP();
++---------------------+
+| UTC_TIMESTAMP()     |
++---------------------+
+| 2021-07-30 21:39:49 |
++---------------------+
+1 row in set (0.0003 sec)
+ MySQL  localhost:3306  sampledb  SQL > \exit
+Bye!
+
+/*************************************************************************************************************************/
+
+
+
+
+
+/*************************************************************************************************************************/
+
+-- SQL Server
+
+/*************************************************************************************************************************/
+---------------------------------------------------------------------------------------------------------------------------
+
+-- apply
+
+---------------------------------------------------------------------------------------------------------------------------
+
+USE [master];
+GO
+
+-- IF EXISTS(SELECT name FROM sys.databases WHERE name = N'sampledb')
+IF DB_ID (N'sampledb') IS NOT NULL
+DROP DATABASE [sampledb];
+GO
+
+CREATE DATABASE sampledb;
+GO
+
+USE [sampledb];
+GO
+
+IF OBJECT_ID('Table1', 'U') IS NOT NULL
+DROP TABLE Table1;
+GO
+
+CREATE TABLE Table1
+(
+ ID int, 
+ Value nvarchar(max)
+);
+GO
+
+INSERT INTO Table1
+SELECT 1, 'First' UNION ALL
+SELECT 2, 'Second' UNION ALL
+SELECT 3, 'Third' UNION ALL
+SELECT 4, 'Fourth' UNION ALL
+SELECT 5, 'Fifth';
+GO
+
+SELECT * FROM Table1;
+GO
+
+IF OBJECT_ID('Table2', 'U') IS NOT NULL
+DROP TABLE Table2;
+GO
+
+CREATE TABLE Table2
+(
+ ID int, 
+ Value nvarchar(max)
+);
+GO
+
+INSERT INTO Table2
+SELECT 1, 'I' UNION ALL
+SELECT 2, 'II' UNION ALL
+SELECT 3, 'III' UNION ALL
+SELECT 6, 'VI' UNION ALL
+SELECT 7, 'VII' UNION ALL
+SELECT 8, 'VIII';
+GO
+
+SELECT * FROM Table2;
+GO
+
+-- (INNER) JOIN
+SELECT t1.*, t2.* 
+FROM Table1 t1
+JOIN Table2 t2 
+ON t1.ID = t2.ID;
+GO
+
+-- CROSS APPLY
+SELECT t1.*, t3.* 
+FROM Table1 t1
+CROSS APPLY
+(SELECT * FROM Table2 t2 
+WHERE t1.ID = t2.ID) t3;
+GO
+
+-- LEFT (OUTER) JOIN
+SELECT t1.*, t2.* 
+FROM Table1 t1
+LEFT JOIN Table2 t2 
+ON t1.ID = t2.ID;
+GO
+
+-- OUTER APPLY
+SELECT t1.*, t3.* 
+FROM Table1 t1
+OUTER APPLY
+(SELECT * FROM Table2 t2 
+WHERE t1.ID = t2.ID) t3;
+GO
+
+-- IF EXISTS(SELECT name FROM sys.objects WHERE name = N'F1' AND type =N'FN')
+IF OBJECT_ID(N'F1', N'FN') IS NOT NULL
+DROP FUNCTION F1
+GO
+
+CREATE FUNCTION F1
+(
+ @In int
+)
+RETURNS nvarchar(max)
+AS
+BEGIN
+ -- DECLARE @Return nvarchar(max)
+ -- SET @Return = (SELECT TOP 1 ID FROM Table2 WHERE ID = @In);
+ -- RETURN @Return
+ RETURN (SELECT TOP 1 ID FROM Table2 WHERE ID = @In);
+END
+GO
+
+-- CROSS APPLY with User-Defined Function
+SELECT t1.*, t3.* 
+FROM Table1 t1
+CROSS APPLY
+(SELECT [dbo].[F1](t1.ID)) t3(ID);
+GO
+
+-- IF EXISTS(SELECT name FROM sys.objects WHERE name = N'F2' AND type =N'TF')
+IF OBJECT_ID(N'F2', N'TF') IS NOT NULL
+DROP FUNCTION F2;
+GO
+
+CREATE FUNCTION F2
+(
+ @In int
+)
+RETURNS @R2 TABLE
+(
+  ID int,
+  Value nvarchar(max)
+)
+AS
+BEGIN
+ INSERT INTO @R2 
+ SELECT ID, Value FROM Table2 WHERE (ID > @In);
+ RETURN;
+END
+GO
+
+SELECT * FROM Table1;
+GO
+
+DECLARE @ID int;
+DECLARE CursorID CURSOR 
+  LOCAL STATIC READ_ONLY FORWARD_ONLY
+FOR 
+SELECT DISTINCT ID FROM Table1
+OPEN CursorID
+FETCH NEXT FROM CursorID INTO @ID
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SELECT * FROM F2(@ID);
+    FETCH NEXT FROM CursorID INTO @ID;
+END
+CLOSE CursorID
+DEALLOCATE CursorID
+
+/*
+1 + 1 + 1 + 1 + 1 + 1 = 5
+2 + 2 + 2 + 2 = 8
+3 + 3 + 3 = 9
+4 + 4 + 4 = 12
+5 + 5 + 5 = 15
+SELECT t1.ID, t2.ID
+FROM Table1 t1
+OUTER APPLY
+F2(t1.ID) t2;
+GO
+*/
+-- OUTER APPLY with User-Defined Function
+SELECT t1.ID, SUM(t1.ID) AS Total
+FROM Table1 t1
+OUTER APPLY
+F2(t1.ID) t2
+GROUP BY t1.ID;
+GO
+
+-- CROSS APPLY with TOP
+SELECT t1.*, t3.* FROM Table1 t1
+CROSS APPLY(SELECT TOP 4(ID), Value FROM Table2 t2 WHERE t1.ID = t2.ID) t3;
+GO
+
+-- OUTER APPLY with TOP
+SELECT t1.*, t3.* FROM Table1 t1
+OUTER APPLY(SELECT TOP 4(ID), Value FROM Table2 t2 WHERE t1.ID = t2.ID) t3;
+GO
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- columns
+
+---------------------------------------------------------------------------------------------------------------------------
+
+USE [master];
+GO
+
+-- IF EXISTS(SELECT name FROM sys.databases WHERE name = N'sampledb')
+IF DB_ID (N'sampledb') IS NOT NULL
+DROP DATABASE [sampledb];
+GO
+
+CREATE DATABASE sampledb;
+GO
+
+USE [sampledb];
+GO
+
+-- IF EXISTS(SELECT name FROM sys.tables WHERE name = N'users')
+IF OBJECT_ID (N'users', N'U') IS NOT NULL
+DROP TABLE [users];
+GO
+
+CREATE TABLE users
+(
+    id INT IDENTITY(1,1) NOT NULL,
+    username VARCHAR(50) NOT NULL, 
+    login_date DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    login_time TIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME2 DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,    
+    CONSTRAINT pk_id PRIMARY KEY(id),
+    CONSTRAINT idx_username UNIQUE(username)    
+);
+GO
+
+SELECT * FROM users;
+GO
+
+sp_help users;
+GO
+
+SELECT *
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'users';
+GO
+
+sp_columns users
+GO
+
+-- sys.columns returns a row for each column of an object that has columns, such as views or tables.
+-- The following is a list of object types that have columns:
+-- ï Table-valued assembly functions (FT)
+-- ï Inline table-valued SQL functions (IF)
+-- ï Internal tables (IT)
+-- ï System tables (S)
+-- ï Table-valued SQL functions (TF)
+-- ï User tables (U)
+-- ï Views (V)
+-- sys.all_columns shows the union of all columns belonging to user-defined objects and system objects.
+
+SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'users');
+GO
+
+SELECT   o.name, c.name
+FROM     sys.columns c 
+         JOIN sys.objects o ON o.object_id = c.object_id 
+WHERE    o.type = 'U' -- AND o.name = 'users'
+ORDER BY o.name, c.name;
+GO
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- cursor
+
+---------------------------------------------------------------------------------------------------------------------------
+
+USE [master];
+GO
+
+-- IF EXISTS(SELECT name FROM sys.databases WHERE name = N'sampledb')
+IF DB_ID (N'sampledb') IS NOT NULL
+DROP DATABASE [sampledb];
+GO
+
+CREATE DATABASE sampledb;
+GO
+
+USE [sampledb];
+GO
+
+IF OBJECT_ID('Table1', 'U') IS NOT NULL
+DROP TABLE Table1;
+GO
+
+CREATE TABLE Table1
+(
+ ID int, 
+ Value nvarchar(max)
+);
+GO
+
+INSERT INTO Table1
+SELECT 1, 'First' UNION ALL
+SELECT 2, 'Second' UNION ALL
+SELECT 3, 'Third' UNION ALL
+SELECT 4, 'Fourth' UNION ALL
+SELECT 5, 'Fifth';
+GO
+
+SELECT * FROM Table1;
+GO
+
+IF OBJECT_ID('Table2', 'U') IS NOT NULL
+DROP TABLE Table2;
+GO
+
+CREATE TABLE Table2
+(
+ ID int, 
+ Value nvarchar(max)
+);
+GO
+
+INSERT INTO Table2
+SELECT 1, 'I' UNION ALL
+SELECT 2, 'II' UNION ALL
+SELECT 3, 'III' UNION ALL
+SELECT 6, 'VI' UNION ALL
+SELECT 7, 'VII' UNION ALL
+SELECT 8, 'VIII';
+GO
+
+SELECT * FROM Table2;
+GO
+
+-- IF EXISTS(SELECT name FROM sys.objects WHERE name = N'F1' AND type =N'TF')
+IF OBJECT_ID(N'F1', N'TF') IS NOT NULL
+DROP FUNCTION F1;
+GO
+
+CREATE FUNCTION F1
+(
+ @In int
+)
+RETURNS @R1 TABLE
+(
+  ID int,
+  Value nvarchar(max)
+)
+AS
+BEGIN
+ INSERT INTO @R1 
+ SELECT ID, Value FROM Table2 WHERE (ID > @In);
+ RETURN;
+END
+GO
+
+SELECT * FROM Table1;
+GO
+
+DECLARE @ID int;
+DECLARE CursorID CURSOR 
+  LOCAL STATIC READ_ONLY FORWARD_ONLY
+FOR 
+SELECT DISTINCT ID FROM Table1
+OPEN CursorID
+FETCH NEXT FROM CursorID INTO @ID
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SELECT * FROM F1(@ID);
+    FETCH NEXT FROM CursorID INTO @ID;
+END
+CLOSE CursorID
+DEALLOCATE CursorID
+GO
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- databases and tables
+
+---------------------------------------------------------------------------------------------------------------------------
+
+USE [master];
+GO
+
+IF EXISTS(SELECT name FROM sys.databases WHERE name = N'sampledb')
+DROP DATABASE [sampledb];
+GO
+
+-- OR
+
+IF DB_ID (N'sampledb') IS NOT NULL
+DROP DATABASE [sampledb];
+GO
+
+CREATE DATABASE sampledb;
+GO
+
+USE [sampledb];
+GO
+
+IF EXISTS(SELECT name FROM sys.tables WHERE name = N'sample')
+DROP TABLE [sample];
+GO
+
+-- OR
+
+IF OBJECT_ID (N'sample', N'U') IS NOT NULL
+DROP TABLE [sample];
+GO
+
+CREATE TABLE sample
+(
+ id int IDENTITY(1, 1),
+ name nvarchar(max),
+ date datetime2
+);
+GO
+
+SELECT * FROM sample;
+GO
+
+INSERT INTO sample VALUES('ABC', GETDATE());
+GO
+
+INSERT INTO sample (date) VALUES(GETDATE());
+GO
+
+INSERT INTO sample
+SELECT 'Alpha', GETDATE() UNION ALL
+SELECT 'Beta', GETDATE() UNION ALL
+SELECT 'Gamma', GETDATE();
+GO
+
+SELECT * FROM sample;
+GO
+
+SELECT name, database_id, create_date  
+FROM sys.databases;  
+GO  
+
+SELECT * 
+FROM sys.databases;
+GO
+
+SELECT * 
+FROM sys.databases ORDER BY name;
+GO
+
+SELECT * 
+FROM sys.databases ORDER BY database_id;
+GO
+
+SELECT * 
+FROM sys.databases 
+WHERE name NOT IN ('master', 'model', 'msdb',  'tempdb') 
+ORDER BY name;
+GO
+
+SELECT * 
+FROM sys.databases 
+WHERE name NOT IN ('master', 'model', 'msdb', 'tempdb') 
+ORDER BY name;
+GO
+
+SELECT * 
+FROM sys.databases 
+WHERE database_id > 6 ORDER BY name;
+GO
+
+SELECT * 
+FROM sys.databases 
+WHERE name NOT IN ('master', 'model', 'msdb', 'tempdb') 
+ORDER BY name;
+GO
+
+SELECT *
+FROM sys.sysdatabases -- SQL Server 2000
+WHERE HAS_DBACCESS(name) = 1
+GO
+
+SELECT * 
+FROM sys.databases
+WHERE HAS_DBACCESS(name) = 1
+GO
+
+declare @sql nvarchar(max);
+
+select @sql = 
+    (select ' UNION ALL
+        SELECT ' +  + quotename(name,'''') + ' as database_name,
+               s.name COLLATE DATABASE_DEFAULT
+                    AS schema_name,
+               t.name COLLATE DATABASE_DEFAULT as table_name 
+               FROM '+ quotename(name) + '.sys.tables t
+               JOIN '+ quotename(name) + '.sys.schemas s
+                    on s.schema_id = t.schema_id'
+    from sys.databases 
+    where state = 0
+    order by [name] for xml path(''), type).value('.', 'nvarchar(max)');
+
+set @sql = stuff(@sql, 1, 12, '') + ' order by database_name, 
+                                               schema_name,
+                                               table_name';
+
+execute (@sql);
+GO
+
+declare @sql nvarchar(max);
+
+select @sql = 
+    (select ' UNION ALL
+        SELECT ' +  + quotename(name,'''') + ' as database_name,
+               s.name COLLATE DATABASE_DEFAULT
+                    AS schema_name,
+               t.name COLLATE DATABASE_DEFAULT as table_name 
+               FROM '+ quotename(name) + '.sys.tables t
+			   
+               JOIN '+ quotename(name) + '.sys.schemas s
+                    on s.schema_id = t.schema_id'
+    from sys.databases 
+    WHERE name NOT IN 
+	('master', 'model', 'msdb', 'tempdb')
+    AND state = 0
+    order by [name] for xml path(''), type).value('.', 'nvarchar(max)');
+
+set @sql = stuff(@sql, 1, 12, '') + ' order by database_name, 
+                                               schema_name,
+                                               table_name';
+
+execute (@sql);
+GO
+
+declare @sql nvarchar(max);
+
+select @sql = 
+    (select ' UNION ALL
+        SELECT ' +  + quotename(name,'''') + ' as database_name,
+               s.name COLLATE DATABASE_DEFAULT
+                    AS schema_name,
+               t.name COLLATE DATABASE_DEFAULT as table_name 
+               FROM '+ quotename(name) + '.sys.tables t
+			   
+               JOIN '+ quotename(name) + '.sys.schemas s
+                    on s.schema_id = t.schema_id'
+    from sys.databases 
+    WHERE HAS_DBACCESS(name) = 1
+    AND state = 0
+    order by [name] for xml path(''), type).value('.', 'nvarchar(max)');
+
+set @sql = stuff(@sql, 1, 12, '') + ' order by database_name, 
+                                               schema_name,
+                                               table_name';
+
+execute (@sql);
+GO
+
+-- IF EXISTS(SELECT name FROM tempdb.sys.tables WHERE name LIKE '#T1%')
+IF OBJECT_ID(N'tempdb.dbo.#T1', N'U') IS NOT NULL
+DROP TABLE #T1;
+GO
+
+CREATE TABLE #T1
+(
+  database_name nvarchar(max),
+  schema_name nvarchar(max),
+  table_name nvarchar(max)
+);
+GO
+
+declare @sql nvarchar(max);
+
+select @sql = 
+    (select ' UNION ALL
+        SELECT ' +  + quotename(name,'''') + ' as database_name,
+               s.name COLLATE DATABASE_DEFAULT
+                    AS schema_name,
+               t.name COLLATE DATABASE_DEFAULT as table_name 
+               FROM '+ quotename(name) + '.sys.tables t
+			   
+               JOIN '+ quotename(name) + '.sys.schemas s
+                    on s.schema_id = t.schema_id'
+    from sys.databases 
+    WHERE HAS_DBACCESS(name) = 1
+    AND state = 0
+    order by [name] for xml path(''), type).value('.', 'nvarchar(max)');
+
+set @sql = stuff(@sql, 1, 12, '') + ' order by database_name, 
+                                               schema_name,
+                                               table_name';
+
+INSERT #T1 execute (@sql);
+GO
+
+SELECT * FROM #T1 WHERE table_name = 'sample';
+GO
+
+SELECT * FROM #T1 WHERE database_name = 'sampledb';
+GO
+
+SELECT
+    P.[entity_name],
+    P.subentity_name,
+    P.[permission_name]
+FROM sys.fn_my_permissions
+    (
+        N'sample', 
+        N'OBJECT'
+    ) AS P
+ORDER BY
+    P.subentity_name,
+    P.[permission_name];
+GO
+
+IF EXISTS(SELECT name FROM tempdb.sys.tables WHERE name LIKE '#T2%')
+-- IF OBJECT_ID(N'tempdb.dbo.#T2', N'U') IS NOT NULL
+DROP TABLE #T2;
+GO
+
+CREATE TABLE #T2
+(
+  id int IDENTITY(1,1),
+  [name] nvarchar(max),
+  [date] datetime2
+);
+GO
+
+SELECT * FROM #T2;
+GO
+
+INSERT INTO #T2 VALUES('Alpha', GETDATE());
+INSERT INTO #T2 VALUES('Beta', GETDATE());
+INSERT INTO #T2 VALUES('Gamma', GETDATE());
+GO
+
+SELECT * FROM #T2;
+GO
+
+IF EXISTS(SELECT * FROM tempdb.sys.tables WHERE name = '##T3')
+-- IF OBJECT_ID(N'tempdb.dbo.##T3', N'U') IS NOT NULL
+DROP TABLE ##T3;
+GO
+
+CREATE TABLE ##T3
+(
+  id int IDENTITY(1,1),
+  [name] nvarchar(max),
+  [date] datetime2
+);
+GO
+
+SELECT * FROM ##T3;
+GO
+
+INSERT INTO ##T3 VALUES('A', GETDATE());
+INSERT INTO ##T3 VALUES('B', GETDATE());
+INSERT INTO ##T3 VALUES('C', GETDATE());
+GO
+
+SELECT * FROM ##T3;
+GO
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- functions
+
+---------------------------------------------------------------------------------------------------------------------------
+
+USE [master];
+GO
+
+-- IF EXISTS(SELECT name FROM sys.databases WHERE name = N'sampledb')
+IF DB_ID (N'sampledb') IS NOT NULL
+DROP DATABASE [sampledb];
+GO
+
+CREATE DATABASE sampledb;
+GO
+
+USE [sampledb];
+GO
+
+-- IF EXISTS(SELECT name FROM sys.tables WHERE name = N'greek')
+IF OBJECT_ID (N'greek', N'U') IS NOT NULL
+DROP TABLE [greek];
+GO
+
+CREATE TABLE greek
+(
+  id int IDENTITY(1,1),
+  name nvarchar(max),
+  rgb nvarchar(max),
+  score int
+);
+GO
+
+SELECT * FROM greek;
+GO
+
+INSERT INTO greek 
+SELECT 'Alpha', 'Green', 85 UNION ALL
+SELECT 'Beta', 'Green', 85 UNION ALL
+SELECT 'Gamma', 'Green', 80 UNION ALL
+SELECT 'Delta', 'Blue', 70 UNION ALL
+SELECT 'Epsilon', 'Blue', 71 UNION ALL
+SELECT 'Zeta', 'Blue', 72 UNION ALL
+SELECT 'Eta', 'Blue', 73 UNION ALL
+SELECT 'Theta', 'Blue', 74 UNION ALL
+SELECT 'Iota', 'Red', 60 UNION ALL
+SELECT 'Kappa', 'Red', 60 UNION ALL
+SELECT 'Lambda', 'Red', 60 UNION ALL
+SELECT 'Mu', 'Red', 65 UNION ALL
+SELECT 'Nu', 'Green', 89 UNION ALL
+SELECT 'Xi', 'Green', 87 UNION ALL
+SELECT 'Omicron', 'Green', 89;
+GO
+
+SELECT * FROM greek;
+GO
+
+-- IF EXISTS(SELECT name FROM sys.tables WHERE name = N'alphabet')
+IF OBJECT_ID (N'alphabet', N'U') IS NOT NULL
+DROP TABLE [alphabet];
+GO
+
+CREATE TABLE alphabet
+(
+  id int,
+  name nvarchar(max),
+  date datetime2
+);
+GO
+
+SELECT * FROM alphabet;
+GO
+
+INSERT INTO alphabet
+SELECT 1, 'A', GETDATE() UNION ALL
+SELECT 2, 'B', GETDATE() UNION ALL
+SELECT 3, 'C', GETDATE() UNION ALL
+SELECT 4, 'D', GETDATE() UNION ALL
+SELECT 5, 'E', GETDATE() UNION ALL
+SELECT 6, 'F', GETDATE() UNION ALL
+SELECT 7, 'G', GETDATE() UNION ALL
+SELECT 8, 'H', GETDATE() UNION ALL
+SELECT 9, 'I', GETDATE() UNION ALL
+SELECT 10, 'J', GETDATE() UNION ALL
+SELECT 11, 'K', GETDATE() UNION ALL
+SELECT 12, 'L', GETDATE() UNION ALL
+SELECT 13, 'M', GETDATE() UNION ALL
+SELECT 14, 'N', GETDATE() UNION ALL
+SELECT 15, 'O', GETDATE();
+GO
+
+SELECT * FROM alphabet;
+GO
+
+-- sys.objects contains a row for each user-defined, schema-scoped object that is created within a database, including natively compiled scalar user-defined function.
+-- sys.all_objects shows the UNION of all schema-scoped user-defined objects and system objects.
+
+-- FN = SQL scalar function
+-- IF = SQL inline table-valued function
+-- TF = SQL table-valued-function
+-- FS = Assembly (CLR) scalar-function
+-- FT = Assembly (CLR) table-valued function
+-- AF = Aggregate function (CLR)
+
+-- IF EXISTS(SELECT name FROM sys.objects WHERE name = N'F1' AND type =N'FN')
+IF OBJECT_ID(N'F1', N'FN') IS NOT NULL
+DROP FUNCTION F1
+GO
+
+CREATE FUNCTION F1
+(
+ @in nvarchar(max)
+)
+RETURNS int
+AS
+BEGIN
+ -- DECLARE @counter int
+ -- SET @counter = (SELECT COUNT(rgb) FROM greek WHERE rgb = @in);
+ -- RETURN @counter
+ RETURN (SELECT COUNT(rgb) FROM greek WHERE rgb = @in);
+END
+GO
+
+-- DECLARE @ret int;
+-- EXECUTE @ret = F1 'Green';
+-- SELECT @ret;
+-- GO
+
+SELECT [dbo].F1('Green');
+GO
+
+-- IF EXISTS(SELECT name FROM sys.objects WHERE name = N'F2' AND type = N'IF')
+IF OBJECT_ID(N'F2', N'IF') IS NOT NULL
+DROP FUNCTION F2;
+GO
+
+CREATE FUNCTION F2
+(
+ @rgb nvarchar(max)
+)
+RETURNS TABLE
+AS
+RETURN (SELECT id, name, rgb, score FROM greek WHERE rgb = @rgb);
+GO
+
+SELECT * FROM F2('Green');
+GO
+
+-- IF EXISTS(SELECT name FROM sys.objects WHERE name = N'F3' AND type =N'TF')
+IF OBJECT_ID(N'F3', N'TF') IS NOT NULL
+DROP FUNCTION F3;
+GO
+
+CREATE FUNCTION F3
+(
+ @in int
+)
+RETURNS @T1 TABLE
+(
+  id int IDENTITY(1,1),
+  name nvarchar(max),
+  [table] nvarchar(max)
+)
+AS
+BEGIN
+ INSERT INTO @T1 
+ SELECT name, 'greek' FROM greek WHERE (id % 2 = @in);
+ INSERT INTO @T1 
+ SELECT name, 'alphabet' FROM alphabet WHERE (id % 2 = @in);
+ RETURN;
+END
+GO
+
+SELECT * FROM F3(0);
+GO
+
+
+-- Returning all the user-defined functions in a database
+SELECT name AS function_name   
+  ,SCHEMA_NAME(schema_id) AS schema_name  
+  ,type_desc  
+  ,create_date  
+  ,modify_date  
+FROM sys.objects  
+WHERE type_desc LIKE '%FUNCTION%';  
+GO  
+
+SELECT name, definition, type_desc 
+  FROM sys.sql_modules m 
+INNER JOIN sys.objects o 
+        ON m.object_id=o.object_id
+WHERE type_desc like '%FUNCTION%';
+GO
+
+SELECT * 
+FROM sys.objects
+-- WHERE object_id = OBJECT_ID(N'[dbo].[F1]')
+WHERE -- AND
+type IN ( N'FN', N'IF', N'TF', N'FS', N'FT', N'AF');
+GO
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- identity
+
+---------------------------------------------------------------------------------------------------------------------------
+
+IF OBJECT_ID(N'tempdb.dbo.#Source', N'U') IS NOT NULL
+DROP TABLE #Source; 
+GO
+
+CREATE TABLE #Source
+(
+ source_name nvarchar(max)
+);
+GO
+
+INSERT INTO #Source VALUES('Alpha');
+INSERT INTO #Source VALUES('Beta');
+INSERT INTO #Source VALUES('Gamma');
+GO
+
+SELECT * FROM #Source;
+GO
+
+IF OBJECT_ID(N'tempdb.dbo.#Target', N'U') IS NOT NULL
+DROP TABLE #Target; 
+GO
+
+-- IDENTITY function is used only in a SELECT statement with an INTO table clause to insert an identity column into a new table
+-- IDENTITY function is not the IDENTITY property that is used with CREATE TABLE and ALTER TABLE
+-- SELECT IDENTITY(int, 1, 1) AS target_id, 'name' as target_name INTO #Target;
+SELECT IDENTITY(int, 1, 1) AS target_id, source_name as target_name INTO #Target FROM #Source;
+GO
+
+SELECT * FROM #Target;
+GO
+
+
+IF OBJECT_ID(N'tempdb.dbo.#T1', N'U') IS NOT NULL
+DROP TABLE #T1; 
+GO
+
+CREATE TABLE #T1
+(
+ id int IDENTITY(1, 1),
+ name nvarchar(max)
+);
+GO
+
+INSERT INTO #T1 VALUES('Alpha');
+INSERT INTO #T1 VALUES('Beta');
+INSERT INTO #T1 VALUES('Gamma');
+GO
+
+SELECT * FROM #T1;
+GO
+
+INSERT INTO #T1 VALUES('Gamma');
+-- SCOPE_IDENTITY returns the last identity values that are generated in any table in the current session
+-- SCOPE_IDENTITY returns values inserted only within the current scope
+SELECT SCOPE_IDENTITY() as 'Scope_Identity';
+-- @@IDENTITY return the last identity values that are generated in any table in the current session
+-- @@IDENTITY is not limited to a specific scope
+SELECT @@IDENTITY as 'Identity';
+-- IDENT_CURRENT is not limited by scope and session; it is limited to a specified table or view
+-- IDENT_CURRENT returns the value generated for a specific table or view in any session and any scope
+SELECT IDENT_CURRENT('#T1') as 'Ident_Current';
+GO
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- merge
+
+---------------------------------------------------------------------------------------------------------------------------
+
+IF EXISTS(SELECT name FROM tempdb.sys.tables WHERE name LIKE '#Target%')
+-- IF OBJECT_ID(N'tempdb.dbo.#Target', N'U') IS NOT NULL
+DROP TABLE #Target;
+GO
+
+CREATE TABLE #Target
+(
+  id int,
+  name nvarchar(max),
+  date datetime2
+);
+GO
+
+SELECT * FROM #Target;
+GO
+
+INSERT INTO #Target VALUES(1, 'Alpha', GETDATE());
+INSERT INTO #Target VALUES(2, 'Beta', GETDATE());
+INSERT INTO #Target VALUES(3, 'Gamma', GETDATE());
+INSERT INTO #Target VALUES(4, 'Delta', GETDATE());
+GO
+
+SELECT * FROM #Target;
+GO
+
+IF EXISTS(SELECT name FROM tempdb.sys.tables WHERE name LIKE '#Source%')
+-- IF OBJECT_ID(N'tempdb.dbo.#Source', N'U') IS NOT NULL
+DROP TABLE #Source;
+GO
+
+CREATE TABLE #Source
+(
+  id int,
+  name nvarchar(max),
+  date datetime2
+);
+GO
+
+SELECT * FROM #Source;
+GO
+
+INSERT INTO #Source VALUES(1, 'A', GETDATE());
+INSERT INTO #Source VALUES(3, 'C', GETDATE());
+INSERT INTO #Source VALUES(4, 'D', GETDATE());
+INSERT INTO #Source VALUES(5, 'E', GETDATE());
+INSERT INTO #Source VALUES(6, 'F', GETDATE());
+GO
+
+SELECT * FROM #Source;
+GO
+
+IF EXISTS(SELECT name FROM tempdb.sys.tables WHERE name LIKE '#Result%')
+-- IF OBJECT_ID(N'tempdb.dbo.#Result', N'U') IS NOT NULL
+DROP TABLE #Result;
+GO
+
+CREATE TABLE #Result
+(
+ existing_id int,
+ existing_name nvarchar(max),
+ existing_date datetime2,
+ action_taken nvarchar(max),
+ new_id int,
+ new_name nvarchar(max),
+ new_date datetime2
+);
+GO
+
+SELECT * FROM #Result;
+GO
+
+MERGE #Target t USING #Source s
+ON t.id = s.id
+WHEN MATCHED THEN
+UPDATE SET 
+t.name = s.name,
+t.date = s.date
+WHEN NOT MATCHED BY TARGET THEN
+INSERT(id, name, date) VALUES (s.id, s.name, s.date)
+WHEN NOT MATCHED BY SOURCE THEN
+DELETE
+OUTPUT deleted.*, $action, inserted.* INTO #Result;
+GO
+
+SELECT * FROM #Target;
+GO
+
+SELECT * FROM #Source;
+GO
+
+SELECT * FROM #Result;
+GO
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- parameters
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- sys.parameters contains a row for each parameter of an object that accepts parameters. If the object is a scalar function, there is also a single row describing the return value. That row will have a parameter_id value of 0.
+-- sys.all_parameters shows the union of all parameters that belong to user-defined or system objects.
+
+SELECT * 
+FROM sys.parameters;
+GO
+
+SELECT *
+FROM sys.all_parameters;
+GO
+
+USE [master];
+GO
+
+-- IF EXISTS(SELECT name FROM sys.databases WHERE name = N'sampledb')
+IF DB_ID (N'sampledb') IS NOT NULL
+DROP DATABASE [sampledb];
+GO
+
+CREATE DATABASE sampledb;
+GO
+
+USE [sampledb];
+GO
+
+-- IF EXISTS(SELECT name FROM sys.tables WHERE name = N'greek')
+IF OBJECT_ID (N'greek', N'U') IS NOT NULL
+DROP TABLE [greek];
+GO
+
+CREATE TABLE greek
+(
+  id int IDENTITY(1,1),
+  name nvarchar(max),
+  rgb nvarchar(max),
+  score int
+);
+GO
+
+SELECT * FROM greek;
+GO
+
+INSERT INTO greek 
+SELECT 'Alpha', 'Green', 85 UNION ALL
+SELECT 'Beta', 'Green', 85 UNION ALL
+SELECT 'Gamma', 'Green', 80 UNION ALL
+SELECT 'Delta', 'Blue', 70 UNION ALL
+SELECT 'Epsilon', 'Blue', 71 UNION ALL
+SELECT 'Zeta', 'Blue', 72 UNION ALL
+SELECT 'Eta', 'Blue', 73 UNION ALL
+SELECT 'Theta', 'Blue', 74 UNION ALL
+SELECT 'Iota', 'Red', 60 UNION ALL
+SELECT 'Kappa', 'Red', 60 UNION ALL
+SELECT 'Lambda', 'Red', 60 UNION ALL
+SELECT 'Mu', 'Red', 65 UNION ALL
+SELECT 'Nu', 'Green', 89 UNION ALL
+SELECT 'Xi', 'Green', 87 UNION ALL
+SELECT 'Omicron', 'Green', 89;
+GO
+
+SELECT * FROM greek;
+GO
+
+-- IF EXISTS(SELECT name FROM sys.tables WHERE name = N'alphabet')
+IF OBJECT_ID (N'alphabet', N'U') IS NOT NULL
+DROP TABLE [alphabet];
+GO
+
+CREATE TABLE alphabet
+(
+  id int,
+  name nvarchar(max),
+  date datetime2
+);
+GO
+
+SELECT * FROM alphabet;
+GO
+
+INSERT INTO alphabet
+SELECT 1, 'A', GETDATE() UNION ALL
+SELECT 2, 'B', GETDATE() UNION ALL
+SELECT 3, 'C', GETDATE() UNION ALL
+SELECT 4, 'D', GETDATE() UNION ALL
+SELECT 5, 'E', GETDATE() UNION ALL
+SELECT 6, 'F', GETDATE() UNION ALL
+SELECT 7, 'G', GETDATE() UNION ALL
+SELECT 8, 'H', GETDATE() UNION ALL
+SELECT 9, 'I', GETDATE() UNION ALL
+SELECT 10, 'J', GETDATE() UNION ALL
+SELECT 11, 'K', GETDATE() UNION ALL
+SELECT 12, 'L', GETDATE() UNION ALL
+SELECT 13, 'M', GETDATE() UNION ALL
+SELECT 14, 'N', GETDATE() UNION ALL
+SELECT 15, 'O', GETDATE();
+GO
+
+SELECT * FROM alphabet;
+GO
+
+-- sys.objects contains a row for each user-defined, schema-scoped object that is created within a database, including natively compiled scalar user-defined function.
+-- sys.all_objects shows the UNION of all schema-scoped user-defined objects and system objects.
+
+-- FN = SQL scalar function
+-- IF = SQL inline table-valued function
+-- TF = SQL table-valued-function
+-- FS = Assembly (CLR) scalar-function
+-- FT = Assembly (CLR) table-valued function
+-- AF = Aggregate function (CLR)
+
+-- IF EXISTS(SELECT name FROM sys.objects WHERE name = N'F1' AND type =N'FN')
+IF OBJECT_ID(N'F1', N'FN') IS NOT NULL
+DROP FUNCTION F1
+GO
+
+CREATE FUNCTION F1
+(
+ @in nvarchar(max)
+)
+RETURNS int
+AS
+BEGIN
+ -- DECLARE @counter int
+ -- SET @counter = (SELECT COUNT(rgb) FROM greek WHERE rgb = @in);
+ -- RETURN @counter
+ RETURN (SELECT COUNT(rgb) FROM greek WHERE rgb = @in);
+END
+GO
+
+-- DECLARE @ret int;
+-- EXECUTE @ret = F1 'Green';
+-- SELECT @ret;
+-- GO
+
+SELECT [dbo].F1('Green');
+GO
+
+-- IF EXISTS(SELECT name FROM sys.objects WHERE name = N'F2' AND type = N'IF')
+IF OBJECT_ID(N'F2', N'IF') IS NOT NULL
+DROP FUNCTION F2;
+GO
+
+CREATE FUNCTION F2
+(
+ @rgb nvarchar(max)
+)
+RETURNS TABLE
+AS
+RETURN (SELECT id, name, rgb, score FROM greek WHERE rgb = @rgb);
+GO
+
+SELECT * FROM F2('Green');
+GO
+
+-- IF EXISTS(SELECT name FROM sys.objects WHERE name = N'F3' AND type =N'TF')
+IF OBJECT_ID(N'F3', N'TF') IS NOT NULL
+DROP FUNCTION F3;
+GO
+
+CREATE FUNCTION F3
+(
+ @in int
+)
+RETURNS @T1 TABLE
+(
+  id int IDENTITY(1,1),
+  name nvarchar(max),
+  [table] nvarchar(max)
+)
+AS
+BEGIN
+ INSERT INTO @T1 
+ SELECT name, 'greek' FROM greek WHERE (id % 2 = @in);
+ INSERT INTO @T1 
+ SELECT name, 'alphabet' FROM alphabet WHERE (id % 2 = @in);
+ RETURN;
+END
+GO
+
+SELECT * FROM F3(0);
+GO
+
+-- If the object is a scalar function, parameter_id = 0 represents the return value
+SELECT * 
+FROM sys.parameters sp
+INNER JOIN sys.objects so
+ON sp.object_id = so.object_id
+WHERE so.type IN ('FN', 'IF', 'TF');
+GO
+
+-- sys.objects contains a row for each user-defined, schema-scoped object that is created within a database, including natively compiled scalar user-defined function.
+-- sys.all_objects shows the UNION of all schema-scoped user-defined objects and system objects.
+-- sys.procedures contains a row for each object that is a procedure of some kind, with sys.objects.type = P, X, RF, and PC.
+
+-- P = SQL Stored Procedure
+-- X = Extended Stored Procedure
+-- RF = Replication-filter-procedure
+-- PC = CLR Stored Procedure
+
+SELECT * FROM sys.all_objects
+WHERE ([type] = N'P' OR [type] = N'X' OR [type] = N'RF' OR [type] = N'PC')
+ORDER BY [name];
+GO
+
+SELECT * FROM sys.all_objects
+WHERE ([type] = N'P' OR [type] = N'X' OR [type] = N'RF' OR [type] = N'PC')
+AND [is_ms_shipped] = 0
+ORDER BY [name];
+GO
+
+SELECT QUOTENAME(SCHEMA_NAME(schema_id)) + '.' + QUOTENAME(name)
+FROM   sys.all_objects
+WHERE  (type = N'P' OR type = N'X' OR type = N'RF' OR type = N'PC')
+--  Only User Defined Procedures
+AND is_ms_shipped = 0
+--  Only System Stored Procedures
+-- AND is_ms_shipped = 1
+ORDER BY name
+GO
+
+SELECT QUOTENAME(SCHEMA_NAME(schema_id)) + '.' + QUOTENAME(name)
+FROM   sys.all_objects
+WHERE type IN (N'P', N'X', N'PC')
+--  Only User Defined Procedures
+AND is_ms_shipped = 0
+--  Only System Stored Procedures
+-- AND is_ms_shipped = 1
+ORDER BY name
+GO
+
+-- Extended stored procedures reside inside the master database
+-- Extended stored procedures will be removed in a future version - Use CLR Integration instead
+-- sp_addextendedproc can only be executed in the master database
+-- Only members of the sysadmin fixed server role can execute sp_addextendedproc
+-- Existing DLLs that were not registered with a complete path will not work after upgrading to SQL Server 2019 (15.x) - To correct the problem, use sp_dropextendedproc to unregister the DLL, and then reregister it with sp_addextendedproc, specifying the complete path
+
+USE [master];
+GO
+
+-- IF EXISTS(SELECT name FROM sys.procedures WHERE name = N'xp_hello')
+IF OBJECT_ID(N'xp_hello', N'X') IS NOT NULL
+-- DROP PROCEDURE xp_hello;
+EXECUTE sp_dropextendedproc 'xp_hello';
+GO
+
+sp_addextendedproc 'xp_hello', 'c:\xp_hello.dll';  
+GO
+
+GRANT EXECUTE
+ON [xp_hello]
+TO PUBLIC
+GO
+
+DECLARE @txt varchar(33);  
+-- EXEC xp_hello @txt OUTPUT;
+GO
+
+sp_helpextendedproc;
+GO
+
+SELECT * FROM sys.extended_properties;
+GO
+
+SELECT *
+FROM 
+    sys.objects             O LEFT OUTER JOIN
+    sys.extended_properties E ON O.object_id = E.major_id
+WHERE
+    O.name IS NOT NULL
+    AND ISNULL(O.is_ms_shipped, 0) = 0
+    AND ISNULL(E.name, '') <> 'microsoft_database_tools_support'
+    AND O.type_desc = 'SQL_STORED_PROCEDURE'
+ORDER BY O.name;
+GO
+
+-- IF EXISTS(SELECT name FROM sys.databases WHERE name = N'sampledb')
+IF DB_ID (N'sampledb') IS NOT NULL
+DROP DATABASE [sampledb];
+GO
+
+CREATE DATABASE sampledb;
+GO
+
+USE [sampledb];
+GO
+
+-- IF EXISTS(SELECT name FROM sys.tables WHERE name = N'greek')
+IF OBJECT_ID (N'greek', N'U') IS NOT NULL
+DROP TABLE [greek];
+GO
+
+CREATE TABLE greek
+(
+  id int IDENTITY(1,1),
+  name nvarchar(max),
+  rgb nvarchar(max),
+  score int
+);
+GO
+
+SELECT * FROM greek;
+GO
+
+INSERT INTO greek 
+SELECT 'Alpha', 'Green', 85 UNION ALL
+SELECT 'Beta', 'Green', 85 UNION ALL
+SELECT 'Gamma', 'Green', 80 UNION ALL
+SELECT 'Delta', 'Blue', 70 UNION ALL
+SELECT 'Epsilon', 'Blue', 71 UNION ALL
+SELECT 'Zeta', 'Blue', 72 UNION ALL
+SELECT 'Eta', 'Blue', 73 UNION ALL
+SELECT 'Theta', 'Blue', 74 UNION ALL
+SELECT 'Iota', 'Red', 60 UNION ALL
+SELECT 'Kappa', 'Red', 60 UNION ALL
+SELECT 'Lambda', 'Red', 60 UNION ALL
+SELECT 'Mu', 'Red', 65 UNION ALL
+SELECT 'Nu', 'Green', 89 UNION ALL
+SELECT 'Xi', 'Green', 87 UNION ALL
+SELECT 'Omicron', 'Green', 89;
+GO
+
+SELECT * FROM greek;
+GO
+
+IF EXISTS(SELECT name FROM sys.procedures WHERE name = N'P1')
+-- IF OBJECT_ID(N'P1', N'P') IS NOT NULL
+DROP PROCEDURE P1;
+GO
+
+CREATE PROCEDURE P1
+AS
+SELECT * FROM greek ORDER BY id OFFSET 5 ROW FETCH NEXT 5 ROWS ONLY;
+GO
+
+EXECUTE P1;
+GO
+
+IF EXISTS(SELECT name FROM sys.procedures WHERE name = N'Recursion')
+-- IF OBJECT_ID(N'Recursion', N'P') IS NOT NULL
+DROP PROCEDURE Recursion;
+GO
+
+CREATE PROCEDURE Recursion
+(
+  @Number int,
+  @Result nvarchar(max) OUTPUT
+)
+AS
+DECLARE @In int;
+DECLARE @Out int;
+IF @Number > 1
+ BEGIN
+  SELECT @In = @Number - 1;
+  EXECUTE Recursion @In, @Out OUTPUT;
+  SELECT @Result = @Number * @Out;
+ END
+ELSE IF @Number = 1 OR @Number = 0
+ BEGIN
+  SELECT @Result = 1;
+ END
+ELSE
+ BEGIN
+  SELECT @Result = 'Invalid input';
+ END
+RETURN
+GO
+
+DECLARE @In int;
+DECLARE @Out nvarchar(max);
+SET @In = -1;
+EXECUTE Recursion @In, @Out OUTPUT;
+SELECT @Out;
+GO
+
+IF EXISTS(SELECT name FROM sys.procedures WHERE name = N'Recursion')
+-- IF OBJECT_ID(N'Recursion', N'P') IS NOT NULL
+DROP PROCEDURE Recursion;
+GO
+
+CREATE PROCEDURE Recursion
+(
+  @Number int,
+  @Result int OUTPUT
+)
+AS
+DECLARE @In int;
+DECLARE @Out int;
+IF @Number = 1 OR @Number = 0
+ BEGIN
+  SELECT @Result = 1;
+ END
+ELSE
+ BEGIN
+  BEGIN TRY
+   SELECT @In = @Number - 1;
+   EXECUTE Recursion @In, @Out OUTPUT;
+   SELECT @Result = @Number * @Out;
+  END TRY
+  BEGIN CATCH
+   /* 
+    SELECT 
+	 ERROR_NUMBER() AS ErrorNumber  
+     ,ERROR_SEVERITY() AS ErrorSeverity  
+     ,ERROR_STATE() AS ErrorState  
+     ,ERROR_PROCEDURE() AS ErrorProcedure  
+     ,ERROR_LINE() AS ErrorLine  
+     ,ERROR_MESSAGE() AS ErrorMessage;
+   */
+   THROW 51000, 'Invalid input.', 1; 
+  END CATCH;
+ END
+RETURN
+GO
+
+DECLARE @In int;
+DECLARE @Out int;
+SET @In = 6;
+EXECUTE Recursion @In, @Out OUTPUT;
+SELECT @Out;
+GO
+
+IF EXISTS(SELECT name FROM sys.procedures WHERE name = N'Recursion')
+-- IF OBJECT_ID(N'Recursion', N'P') IS NOT NULL
+DROP PROCEDURE Recursion;
+GO
+
+CREATE PROCEDURE Recursion
+(
+  @Number sql_variant,
+  @Result sql_variant OUTPUT
+)
+AS
+DECLARE @In sql_variant;
+DECLARE @Out sql_variant;
+IF SQL_VARIANT_PROPERTY(@Number,'BaseType') = 'int'
+ BEGIN
+  IF @Number = 1 OR @Number = 0
+  BEGIN
+   SELECT @Result = 1;
+  END
+ ELSE
+  BEGIN
+   BEGIN TRY
+    SELECT @In = CONVERT(int, @Number) - 1;
+    EXECUTE Recursion @In, @Out OUTPUT;
+    SELECT @Result = CONVERT(int, @Number) * CONVERT(int, @Out);
+   END TRY
+  BEGIN CATCH
+   THROW 51000, 'Invalid input.', 1; 
+  END CATCH;
+  END
+ END
+ELSE
+ BEGIN
+  SELECT @Result = CONVERT(nvarchar, 'Positive interger required');
+ END
+RETURN
+GO
+
+DECLARE @In sql_variant;
+DECLARE @Out sql_variant;
+SET @In = 5
+EXECUTE Recursion @In, @Out OUTPUT;
+SELECT @Out;
+GO
+
+SELECT * 
+FROM sys.parameters sp
+INNER JOIN sys.objects so
+ON sp.object_id = so.object_id
+WHERE so.type IN ('P', 'X', 'RX', 'PC');
+GO
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- pivot and unpivot
+
+---------------------------------------------------------------------------------------------------------------------------
+
+IF EXISTS(SELECT name FROM tempdb.sys.tables WHERE name LIKE '#T1%')
+-- IF OBJECT_ID(N'tempdb.dbo.#T1', N'U') IS NOT NULL
+DROP TABLE #T1;
+GO
+
+CREATE TABLE #T1
+(
+  Id int IDENTITY(1,1),
+  Name nvarchar(max),
+  Rgb nvarchar(max),
+  Score int
+);
+GO
+
+INSERT INTO #T1
+SELECT 'Alpha', 'Green', 90 UNION ALL 
+SELECT 'Beta', 'Green', 91 UNION ALL
+SELECT 'Gamma', 'Green', 93 UNION ALL
+SELECT 'Gamma', 'Green', 94 UNION ALL
+SELECT 'Alpha', 'Blue', 85 UNION ALL
+SELECT 'Beta', 'Blue', 81 UNION ALL
+SELECT 'Beta', 'Blue', 83 UNION ALL
+SELECT 'Gamma', 'Blue', 81 UNION ALL
+SELECT 'Gamma', 'Blue', 83 UNION ALL
+SELECT 'Alpha', 'Blue', 80 UNION ALL
+SELECT 'Alpha', 'Red', 70 UNION ALL
+SELECT 'Alpha', 'Red', 70 UNION ALL
+SELECT 'Gamma', 'Red', 70 UNION ALL
+SELECT 'Gamma', 'Red', 70 UNION ALL
+SELECT 'Beta', 'Red', 71 UNION ALL
+SELECT 'Beta', 'Red', 72 UNION ALL
+SELECT 'Alpha', 'Green', 95 UNION ALL
+SELECT 'Beta', 'Green', 93;
+GO
+
+SELECT * FROM #T1 ORDER BY name, score;
+GO
+
+-- Pivot
+SELECT Rgb, Alpha, Beta, Gamma FROM
+(SELECT Name, Rgb, Score From #T1) AS Table1
+PIVOT (SUM(Score) For Name IN (Alpha, Beta, Gamma)) AS Table2
+ORDER BY Table2.Rgb;
+GO
+
+-- Pivot
+SELECT Name, Blue, Green, Red FROM
+(SELECT Name, Rgb, Score From #T1) AS Table1
+PIVOT (SUM(Score) For Rgb IN (Blue, Green, Red)) AS Table2
+ORDER BY Table2.Name;
+GO
+
+-- Pivot
+DECLARE @Pivot nvarchar(max);
+DECLARE @DynamicQuery nvarchar(max);
+SELECT @Pivot = COALESCE(@Pivot + ', ',  '') + QUOTENAME(Rgb) FROM
+(SELECT DISTINCT (Rgb) FROM #T1) AS Table1;
+
+-- PRINT @Pivot;
+
+SELECT @DynamicQuery = 'SELECT Name, ' + @Pivot + ' FROM 
+(SELECT Name, Rgb, Score FROM #T1) AS Table2
+PIVOT (SUM(Score) FOR RGB IN ('+ @Pivot + ')) AS Table3
+ORDER BY Table3.Name';
+
+-- PRINT @DynamicQuery;
+
+EXECUTE sp_executesql @DynamicQuery;
+
+
+-- Unpivot
+DECLARE @T1 table
+(
+ Rgb nvarchar(max),
+ Alpha nvarchar(max),
+ Beta nvarchar(max),
+ Gamma nvarchar(max)
+ );
+ 
+INSERT INTO @T1
+SELECT Rgb, Alpha, Beta, Gamma FROM
+(SELECT Name, Rgb, Score From #T1) AS Table1
+PIVOT (SUM(Score) FOR Name IN (Alpha, Beta, Gamma)) AS Table2
+ORDER BY Table2.Rgb;
+
+SELECT * FROM @T1;
+
+SELECT Name, Rgb, Score FROM @T1 AS T1
+UNPIVOT (Score FOR Name IN (Alpha, Beta, Gamma)) AS T2;
+GO
+
+-- Unpivot
+DECLARE @T2 table
+(
+ Name nvarchar(max),
+ Blue nvarchar(max),
+ Green nvarchar(max),
+ Red nvarchar(max)
+);
+
+INSERT @T2
+SELECT Name, Blue, Green, Red FROM
+(SELECT Name, Rgb, Score FROM #T1) AS T1
+PIVOT (SUM(Score) FOR Rgb IN (Blue, Green, Red)) AS T2
+ORDER BY T2.Name;
+
+SELECT * FROM @T2;
+
+SELECT Name, Rgb, Score FROM @T2 AS Table1
+UNPIVOT (Score FOR Rgb IN (Blue, Green, Red)) AS Table2;
+GO
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- procedures
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- sys.objects contains a row for each user-defined, schema-scoped object that is created within a database, including natively compiled scalar user-defined function.
+-- sys.all_objects shows the UNION of all schema-scoped user-defined objects and system objects.
+-- sys.procedures contains a row for each object that is a procedure of some kind, with sys.objects.type = P, X, RF, and PC.
+
+-- P = SQL Stored Procedure
+-- X = Extended Stored Procedure
+-- RF = Replication-filter-procedure
+-- PC = CLR Stored Procedure
+
+SELECT * FROM sys.all_objects
+WHERE ([type] = N'P' OR [type] = N'X' OR [type] = N'RF' OR [type] = N'PC')
+ORDER BY [name];
+GO
+
+SELECT * FROM sys.all_objects
+WHERE ([type] = N'P' OR [type] = N'X' OR [type] = N'RF' OR [type] = N'PC')
+AND [is_ms_shipped] = 0
+ORDER BY [name];
+GO
+
+SELECT QUOTENAME(SCHEMA_NAME(schema_id)) + '.' + QUOTENAME(name)
+FROM   sys.all_objects
+WHERE  (type = N'P' OR type = N'X' OR type = N'RF' OR type = N'PC')
+--  Only User Defined Procedures
+AND is_ms_shipped = 0
+--  Only System Stored Procedures
+-- AND is_ms_shipped = 1
+ORDER BY name
+GO
+
+SELECT QUOTENAME(SCHEMA_NAME(schema_id)) + '.' + QUOTENAME(name)
+FROM   sys.all_objects
+WHERE type IN (N'P', N'X', N'PC')
+--  Only User Defined Procedures
+AND is_ms_shipped = 0
+--  Only System Stored Procedures
+-- AND is_ms_shipped = 1
+ORDER BY name
+GO
+
+-- Extended stored procedures reside inside the master database
+-- Extended stored procedures will be removed in a future version - Use CLR Integration instead
+-- sp_addextendedproc can only be executed in the master database
+-- Only members of the sysadmin fixed server role can execute sp_addextendedproc
+-- Existing DLLs that were not registered with a complete path will not work after upgrading to SQL Server 2019 (15.x) - To correct the problem, use sp_dropextendedproc to unregister the DLL, and then reregister it with sp_addextendedproc, specifying the complete path
+
+USE [master];
+GO
+
+-- IF EXISTS(SELECT name FROM sys.procedures WHERE name = N'xp_hello')
+IF OBJECT_ID(N'xp_hello', N'X') IS NOT NULL
+-- DROP PROCEDURE xp_hello;
+EXECUTE sp_dropextendedproc 'xp_hello';
+GO
+
+sp_addextendedproc 'xp_hello', 'c:\xp_hello.dll';  
+GO
+
+GRANT EXECUTE
+ON [xp_hello]
+TO PUBLIC
+GO
+
+DECLARE @txt varchar(33);  
+-- EXEC xp_hello @txt OUTPUT;
+GO
+
+sp_helpextendedproc;
+GO
+
+SELECT * FROM sys.extended_properties;
+GO
+
+SELECT *
+FROM 
+    sys.objects             O LEFT OUTER JOIN
+    sys.extended_properties E ON O.object_id = E.major_id
+WHERE
+    O.name IS NOT NULL
+    AND ISNULL(O.is_ms_shipped, 0) = 0
+    AND ISNULL(E.name, '') <> 'microsoft_database_tools_support'
+    AND O.type_desc = 'SQL_STORED_PROCEDURE'
+ORDER BY O.name;
+GO
+
+-- IF EXISTS(SELECT name FROM sys.databases WHERE name = N'sampledb')
+IF DB_ID (N'sampledb') IS NOT NULL
+DROP DATABASE [sampledb];
+GO
+
+CREATE DATABASE sampledb;
+GO
+
+USE [sampledb];
+GO
+
+-- IF EXISTS(SELECT name FROM sys.tables WHERE name = N'greek')
+IF OBJECT_ID (N'greek', N'U') IS NOT NULL
+DROP TABLE [greek];
+GO
+
+CREATE TABLE greek
+(
+  id int IDENTITY(1,1),
+  name nvarchar(max),
+  rgb nvarchar(max),
+  score int
+);
+GO
+
+SELECT * FROM greek;
+GO
+
+INSERT INTO greek 
+SELECT 'Alpha', 'Green', 85 UNION ALL
+SELECT 'Beta', 'Green', 85 UNION ALL
+SELECT 'Gamma', 'Green', 80 UNION ALL
+SELECT 'Delta', 'Blue', 70 UNION ALL
+SELECT 'Epsilon', 'Blue', 71 UNION ALL
+SELECT 'Zeta', 'Blue', 72 UNION ALL
+SELECT 'Eta', 'Blue', 73 UNION ALL
+SELECT 'Theta', 'Blue', 74 UNION ALL
+SELECT 'Iota', 'Red', 60 UNION ALL
+SELECT 'Kappa', 'Red', 60 UNION ALL
+SELECT 'Lambda', 'Red', 60 UNION ALL
+SELECT 'Mu', 'Red', 65 UNION ALL
+SELECT 'Nu', 'Green', 89 UNION ALL
+SELECT 'Xi', 'Green', 87 UNION ALL
+SELECT 'Omicron', 'Green', 89;
+GO
+
+SELECT * FROM greek;
+GO
+
+IF EXISTS(SELECT name FROM sys.procedures WHERE name = N'P1')
+-- IF OBJECT_ID(N'P1', N'P') IS NOT NULL
+DROP PROCEDURE P1;
+GO
+
+CREATE PROCEDURE P1
+AS
+SELECT * FROM greek ORDER BY id OFFSET 5 ROW FETCH NEXT 5 ROWS ONLY;
+GO
+
+EXECUTE P1;
+GO
+
+SELECT object_id FROM sys.procedures WHERE name = N'P1';
+GO
+
+SELECT * FROM sys.sql_modules WHERE object_id = (SELECT object_id FROM sys.procedures WHERE name = N'P1');
+GO
+
+SELECT * FROM sys.all_sql_modules WHERE object_id = (SELECT object_id FROM sys.procedures WHERE name = N'P1');
+GO
+
+SELECT sp.name, sp.object_id, sm.definition
+FROM sys.procedures sp
+JOIN sys.sql_modules sm
+ON sp.object_id = sm.object_id;
+GO
+
+SELECT sp.name, sp.object_id, sa.definition
+FROM sys.procedures sp
+JOIN sys.all_sql_modules sa
+ON sp.object_id = sa.object_id;
+GO
+
+IF EXISTS(SELECT name FROM sys.procedures WHERE name = N'Recursion')
+-- IF OBJECT_ID(N'Recursion', N'P') IS NOT NULL
+DROP PROCEDURE Recursion;
+GO
+
+CREATE PROCEDURE Recursion
+(
+  @Number int,
+  @Result nvarchar(max) OUTPUT
+)
+AS
+DECLARE @In int;
+DECLARE @Out int;
+IF @Number > 1
+ BEGIN
+  SELECT @In = @Number - 1;
+  EXECUTE Recursion @In, @Out OUTPUT;
+  SELECT @Result = @Number * @Out;
+ END
+ELSE IF @Number = 1 OR @Number = 0
+ BEGIN
+  SELECT @Result = 1;
+ END
+ELSE
+ BEGIN
+  SELECT @Result = 'Invalid input';
+ END
+RETURN
+GO
+
+DECLARE @In int;
+DECLARE @Out nvarchar(max);
+SET @In = -1;
+EXECUTE Recursion @In, @Out OUTPUT;
+SELECT @Out;
+GO
+
+IF EXISTS(SELECT name FROM sys.procedures WHERE name = N'Recursion')
+-- IF OBJECT_ID(N'Recursion', N'P') IS NOT NULL
+DROP PROCEDURE Recursion;
+GO
+
+CREATE PROCEDURE Recursion
+(
+  @Number int,
+  @Result int OUTPUT
+)
+AS
+DECLARE @In int;
+DECLARE @Out int;
+IF @Number = 1 OR @Number = 0
+ BEGIN
+  SELECT @Result = 1;
+ END
+ELSE
+ BEGIN
+  BEGIN TRY
+   SELECT @In = @Number - 1;
+   EXECUTE Recursion @In, @Out OUTPUT;
+   SELECT @Result = @Number * @Out;
+  END TRY
+  BEGIN CATCH
+   /* 
+    SELECT 
+	 ERROR_NUMBER() AS ErrorNumber  
+     ,ERROR_SEVERITY() AS ErrorSeverity  
+     ,ERROR_STATE() AS ErrorState  
+     ,ERROR_PROCEDURE() AS ErrorProcedure  
+     ,ERROR_LINE() AS ErrorLine  
+     ,ERROR_MESSAGE() AS ErrorMessage;
+   */
+   THROW 51000, 'Invalid input.', 1; 
+  END CATCH;
+ END
+RETURN
+GO
+
+DECLARE @In int;
+DECLARE @Out int;
+SET @In = 6;
+EXECUTE Recursion @In, @Out OUTPUT;
+SELECT @Out;
+GO
+
+IF EXISTS(SELECT name FROM sys.procedures WHERE name = N'Recursion')
+-- IF OBJECT_ID(N'Recursion', N'P') IS NOT NULL
+DROP PROCEDURE Recursion;
+GO
+
+CREATE PROCEDURE Recursion
+(
+  @Number sql_variant,
+  @Result sql_variant OUTPUT
+)
+AS
+DECLARE @In sql_variant;
+DECLARE @Out sql_variant;
+IF SQL_VARIANT_PROPERTY(@Number,'BaseType') = 'int'
+ BEGIN
+  IF @Number = 1 OR @Number = 0
+  BEGIN
+   SELECT @Result = 1;
+  END
+ ELSE
+  BEGIN
+   BEGIN TRY
+    SELECT @In = CONVERT(int, @Number) - 1;
+    EXECUTE Recursion @In, @Out OUTPUT;
+    SELECT @Result = CONVERT(int, @Number) * CONVERT(int, @Out);
+   END TRY
+  BEGIN CATCH
+   THROW 51000, 'Invalid input.', 1; 
+  END CATCH;
+  END
+ END
+ELSE
+ BEGIN
+  SELECT @Result = CONVERT(nvarchar, 'Positive interger required');
+ END
+RETURN
+GO
+
+DECLARE @In sql_variant;
+DECLARE @Out sql_variant;
+SET @In = 5
+EXECUTE Recursion @In, @Out OUTPUT;
+SELECT @Out;
+GO
+
+SELECT * 
+FROM sys.parameters sp
+INNER JOIN sys.objects so
+ON sp.object_id = so.object_id
+WHERE so.type IN ('P', 'X', 'RX', 'PC');
+GO
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- rank
+
+---------------------------------------------------------------------------------------------------------------------------
+
+;WITH CTE(SetID, ID)
+      AS (SELECT 1,1 UNION ALL
+          SELECT 1,1 UNION ALL
+          SELECT 1,1 UNION ALL
+          SELECT 1,2)
+SELECT *,
+	   -- Numbers the output of a result set
+	   -- Returns the sequential number of a row within a partition of a result set, starting at 1 for the first row in each partition
+	   -- ROW_NUMBER numbers all rows sequentially (for example 1, 2, 3, 4, 5)
+       ROW_NUMBER() OVER(PARTITION BY SetID ORDER BY ID) AS 'ROW_NUMBER',
+       -- Returns the rank of each row within the partition of a result set
+	   -- The rank of a row is one plus the number of ranks that come before the row in question
+	   -- RANK provides the same numeric value for ties (for example 1, 2, 2, 4, 5)
+       RANK() OVER(PARTITION BY SetID ORDER BY ID)       AS 'RANK',
+	   -- This function returns the rank of each row within a result set partition, with no gaps in the ranking values
+	   -- The rank of a specific row is one plus the number of distinct rank values that come before that specific row
+       DENSE_RANK() OVER(PARTITION BY SetID ORDER BY ID) AS 'DENSE_RANK',
+	   -- Distributes the rows in an ordered partition into a specified number of groups
+	   -- The groups are numbered, starting at one
+	   -- For each row, NTILE returns the number of the group to which the row belongs
+	   NTILE(3) OVER(PARTITION BY SetID ORDER BY ID) AS 'NTILE'
+FROM  CTE;
+
+
+;WITH CTE(SetID, ID)
+      AS (SELECT 1,1 UNION ALL
+          SELECT 1,1 UNION ALL
+          SELECT 1,1 UNION ALL
+          SELECT 1,2)
+SELECT *,
+	   -- Numbers the output of a result set
+	   -- Returns the sequential number of a row within a partition of a result set, starting at 1 for the first row in each partition
+	   -- ROW_NUMBER numbers all rows sequentially (for example 1, 2, 3, 4, 5)
+       ROW_NUMBER() OVER(PARTITION BY SetID ORDER BY ID DESC) AS 'ROW_NUMBER',
+       -- Returns the rank of each row within the partition of a result set
+	   -- The rank of a row is one plus the number of ranks that come before the row in question
+	   -- RANK provides the same numeric value for ties (for example 1, 2, 2, 4, 5)
+       RANK() OVER(PARTITION BY SetID ORDER BY ID DESC)       AS 'RANK',
+	   -- This function returns the rank of each row within a result set partition, with no gaps in the ranking values
+	   -- The rank of a specific row is one plus the number of distinct rank values that come before that specific row
+       DENSE_RANK() OVER(PARTITION BY SetID ORDER BY ID DESC) AS 'DENSE_RANK',
+	   -- Distributes the rows in an ordered partition into a specified number of groups
+	   -- The groups are numbered, starting at one
+	   -- For each row, NTILE returns the number of the group to which the row belongs
+	   NTILE(3) OVER(PARTITION BY SetID ORDER BY ID DESC) AS 'NTILE'
+FROM  CTE;
+
+
+IF EXISTS(SELECT name FROM tempdb.sys.tables WHERE name LIKE '#T1%')
+-- IF OBJECT_ID(N'tempdb.dbo.#T1', N'U') IS NOT NULL
+DROP TABLE #T1;
+GO
+
+CREATE TABLE #T1
+(
+  id int IDENTITY(1,1),
+  name nvarchar(max),
+  rgb nvarchar(max),
+  score int,
+);
+GO
+
+SELECT * FROM #T1;
+GO
+
+INSERT INTO #T1 VALUES('Alpha', 'Green', 85);
+INSERT INTO #T1 VALUES('Beta', 'Green', 85);
+INSERT INTO #T1 VALUES('Gamma', 'Green', 80);
+INSERT INTO #T1 VALUES('Delta', 'Blue', 70);
+INSERT INTO #T1 VALUES('Epsilon', 'Blue', 71);
+INSERT INTO #T1 VALUES('Zeta', 'Blue', 72);
+INSERT INTO #T1 VALUES('Eta', 'Blue', 73);
+INSERT INTO #T1 VALUES('Theta', 'Blue', 74);
+INSERT INTO #T1 VALUES('Iota', 'Red', 60);
+INSERT INTO #T1 VALUES('Kappa', 'Red', 60);
+INSERT INTO #T1 VALUES('Lambda', 'Red', 60);
+INSERT INTO #T1 VALUES('Mu', 'Red', 65);
+INSERT INTO #T1 VALUES('Nu', 'Green', 89);
+INSERT INTO #T1 VALUES('Xi', 'Green', 87);
+INSERT INTO #T1 VALUES('Omicron', 'Green', 89);
+GO
+
+SELECT * FROM #T1;
+GO
+
+
+SELECT * FROM #T1 GROUP BY rgb, score, name, id;
+
+
+SELECT id, name, rgb, score, AVG(score) OVER(PARTITION BY rgb) as 'average' FROM #T1;
+SELECT id, name, rgb, score, COUNT(id) OVER(PARTITION BY rgb) as 'count' FROM #T1;
+
+SELECT id, name, rgb, score, ROW_NUMBER() OVER(ORDER BY score) as 'row_no' FROM #T1;
+SELECT id, name, rgb, score, ROW_NUMBER() OVER(PARTITION BY rgb ORDER BY score) as 'row_no' FROM #T1;
+
+SELECT id, name, rgb, score, RANK() OVER(ORDER BY score) as 'rank' FROM #T1;
+SELECT id, name, rgb, score, RANK() OVER(PARTITION BY rgb ORDER BY score) as 'rank' FROM #T1;
+
+SELECT id, name, rgb, score, DENSE_RANK() OVER(ORDER BY score) as 'dense_rank' FROM #T1;
+SELECT id, name, rgb, score, DENSE_RANK() OVER(PARTITION BY rgb ORDER BY score) as 'dense_rank' FROM #T1;
+
+SELECT id, name, rgb, score, NTILE(4) OVER(ORDER BY score) as 'ntile' FROM #T1;
+SELECT id, name, rgb, score, NTILE(4) OVER(PARTITION BY rgb ORDER BY score) as 'ntile' FROM #T1;
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- sql_variant
+
+---------------------------------------------------------------------------------------------------------------------------
+
+DECLARE @variant sql_variant;
+SELECT @variant = GETDATE();
+SELECT SQL_VARIANT_PROPERTY(@variant,'BaseType');
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- temp variables
+
+---------------------------------------------------------------------------------------------------------------------------
+
+USE [master];
+GO
+
+-- IF EXISTS(SELECT name FROM sys.databases WHERE name = N'sampledb')
+IF DB_ID (N'sampledb') IS NOT NULL
+DROP DATABASE [sampledb];
+GO
+
+CREATE DATABASE sampledb;
+GO
+
+USE [sampledb];
+GO
+
+-- IF EXISTS(SELECT name FROM sys.tables WHERE name = N'greek')
+IF OBJECT_ID (N'greek', N'U') IS NOT NULL
+DROP TABLE [greek];
+GO
+
+CREATE TABLE greek
+(
+  id int IDENTITY(1,1),
+  name nvarchar(max),
+  rgb nvarchar(max),
+  score int
+);
+GO
+
+SELECT * FROM greek;
+GO
+
+INSERT INTO greek 
+SELECT 'Alpha', 'Green', 85 UNION ALL
+SELECT 'Beta', 'Green', 85 UNION ALL
+SELECT 'Gamma', 'Green', 80 UNION ALL
+SELECT 'Delta', 'Blue', 70 UNION ALL
+SELECT 'Epsilon', 'Blue', 71 UNION ALL
+SELECT 'Zeta', 'Blue', 72 UNION ALL
+SELECT 'Eta', 'Blue', 73 UNION ALL
+SELECT 'Theta', 'Blue', 74 UNION ALL
+SELECT 'Iota', 'Red', 60 UNION ALL
+SELECT 'Kappa', 'Red', 60 UNION ALL
+SELECT 'Lambda', 'Red', 60 UNION ALL
+SELECT 'Mu', 'Red', 65 UNION ALL
+SELECT 'Nu', 'Green', 89 UNION ALL
+SELECT 'Xi', 'Green', 87 UNION ALL
+SELECT 'Omicron', 'Green', 89;
+GO
+
+SELECT * FROM greek;
+GO
+
+DECLARE @test1 nvarchar(max);
+
+SELECT @test1 = 'SELECT * FROM greek';
+
+EXECUTE (@test1);
+GO
+
+DECLARE @test2 int;
+
+SELECT @test2 = (SELECT COUNT(*) FROM greek);
+
+SELECT (@test2);
+GO
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- triggers
+
+---------------------------------------------------------------------------------------------------------------------------
+
+USE [master];
+GO
+
+-- IF EXISTS(SELECT name FROM sys.databases WHERE name = N'sampledb')
+IF DB_ID (N'sampledb') IS NOT NULL
+DROP DATABASE [sampledb];
+GO
+
+CREATE DATABASE sampledb;
+GO
+
+USE [sampledb];
+GO
+
+-- IF EXISTS(SELECT name FROM sys.tables WHERE name = N'greek')
+IF OBJECT_ID (N'greek', N'U') IS NOT NULL
+DROP TABLE [greek];
+GO
+
+CREATE TABLE greek
+(
+  id int IDENTITY(1,1),
+  name nvarchar(max),
+  rgb nvarchar(max),
+  score int
+);
+GO
+
+SELECT * FROM greek;
+GO
+
+INSERT INTO greek 
+SELECT 'Alpha', 'Green', 85 UNION ALL
+SELECT 'Beta', 'Green', 85 UNION ALL
+SELECT 'Gamma', 'Green', 80 UNION ALL
+SELECT 'Delta', 'Blue', 70 UNION ALL
+SELECT 'Epsilon', 'Blue', 71 UNION ALL
+SELECT 'Zeta', 'Blue', 72 UNION ALL
+SELECT 'Eta', 'Blue', 73 UNION ALL
+SELECT 'Theta', 'Blue', 74 UNION ALL
+SELECT 'Iota', 'Red', 60 UNION ALL
+SELECT 'Kappa', 'Red', 60 UNION ALL
+SELECT 'Lambda', 'Red', 60 UNION ALL
+SELECT 'Mu', 'Red', 65 UNION ALL
+SELECT 'Nu', 'Green', 89 UNION ALL
+SELECT 'Xi', 'Green', 87 UNION ALL
+SELECT 'Omicron', 'Green', 89;
+GO
+
+SELECT * FROM greek;
+GO
+
+-- IF EXISTS(SELECT name FROM sys.tables WHERE name = N'result')
+IF OBJECT_ID (N'result', N'U') IS NOT NULL
+DROP TABLE [result];
+GO
+
+CREATE TABLE result
+(
+  id int IDENTITY(1,1),
+  color nvarchar(max)
+);
+GO
+
+SELECT * FROM result;
+GO
+
+-- sys.triggers contains a row for each object that is a trigger, with a type of TR or TA
+-- DML trigger names are schema-scoped and, therefore, are visible in sys.objects
+-- DDL trigger names are scoped by the parent entity and are only visible in this view
+-- TR = SQL trigger
+-- TA = Assembly (CLR-integration) trigger
+
+IF EXISTS (SELECT * FROM sys.triggers WHERE name = 'TG1')
+-- IF OBJECT_ID(N'TG1', N'TR') IS NOT NULL
+DROP TRIGGER TG1;
+GO
+
+CREATE TRIGGER TG1
+ON greek
+--  FOR INSERT, UPDATE, DELETE
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    INSERT INTO result 
+    SELECT DISTINCT (rgb) FROM greek;    
+END
+GO
+
+INSERT INTO greek VALUES
+('pi', 'White', 100);
+GO
+
+SELECT * FROM greek;
+GO
+
+SELECT * FROM result;
+GO
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- Users and Roles
+
+---------------------------------------------------------------------------------------------------------------------------
+
+USE [master];
+GO
+
+CREATE LOGIN [samplelogin] WITH PASSWORD = '*************';
+GO
+
+-- DROP LOGIN [samplelogin];
+-- GO
+
+
+USE [master];
+GO
+
+IF EXISTS(SELECT name FROM sys.databases WHERE name = N'sampledb')
+-- IF DB_ID (N'sampledb') IS NOT NULL
+DROP DATABASE [sampledb];
+GO
+
+CREATE DATABASE sampledb;
+GO
+
+USE [sampledb];
+GO
+
+
+-- CREATE USER [sampleuser] WITHOUT LOGIN; 
+-- GO
+-- EXEC sp_addrolemember N'db_owner', N'sampleuser';
+-- GO
+-- DROP USER [sampleuser];
+-- GO
+
+
+-- CREATE USER [sampleuser] FOR LOGIN [samplelogin];  
+-- GO 
+
+
+IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = N'sampleuser')
+BEGIN
+    CREATE USER [sampleuser] FOR LOGIN [samplelogin];
+    EXEC sp_addrolemember N'db_owner', N'sampleuser';
+END;
+GO
+
+
+SELECT DP1.name AS DatabaseRoleName,   
+   isnull (DP2.name, 'No members') AS DatabaseUserName   
+ FROM sys.database_role_members AS DRM  
+ RIGHT OUTER JOIN sys.database_principals AS DP1  
+   ON DRM.role_principal_id = DP1.principal_id  
+ LEFT OUTER JOIN sys.database_principals AS DP2  
+   ON DRM.member_principal_id = DP2.principal_id  
+WHERE DP1.type = 'R'
+ORDER BY DP1.name; 
+GO
+
+
+-- EXEC sp_addrolemember  @rolename='db_owner', @membername = 'sampleuser';  
+-- EXEC sp_addrolemember 'db_owner', 'sampleuser';
+
+SELECT DP1.name AS DatabaseRoleName,   
+   isnull (DP2.name, 'No members') AS DatabaseUserName   
+ FROM sys.database_role_members AS DRM  
+ RIGHT OUTER JOIN sys.database_principals AS DP1  
+   ON DRM.role_principal_id = DP1.principal_id  
+ LEFT OUTER JOIN sys.database_principals AS DP2  
+   ON DRM.member_principal_id = DP2.principal_id  
+WHERE DP1.type = 'R'
+ORDER BY DP1.name; 
+GO
+
+
+-- EXEC sp_droprolemember @rolename='db_owner', @membername = 'sampleuser';
+EXEC sp_droprolemember 'db_owner', 'sampleuser';
+
+SELECT DP1.name AS DatabaseRoleName,   
+   isnull (DP2.name, 'No members') AS DatabaseUserName   
+ FROM sys.database_role_members AS DRM  
+ RIGHT OUTER JOIN sys.database_principals AS DP1  
+   ON DRM.role_principal_id = DP1.principal_id  
+ LEFT OUTER JOIN sys.database_principals AS DP2  
+   ON DRM.member_principal_id = DP2.principal_id  
+WHERE DP1.type = 'R'
+ORDER BY DP1.name; 
+GO
+
+
+DROP USER [sampleuser];
+GO
+
+
+GRANT CONNECT TO guest;
+GO
+
+REVOKE CONNECT FROM guest;
+GO
+
+
+USE [master];
+GO
+
+DROP LOGIN [samplelogin];
+GO
+
+DROP DATABASE [sampledb];
+GO
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- views
+
+---------------------------------------------------------------------------------------------------------------------------
+
+USE [master];
+GO
+
+-- IF EXISTS(SELECT name FROM sys.databases WHERE name = N'sampledb')
+IF DB_ID (N'sampledb') IS NOT NULL
+DROP DATABASE [sampledb];
+GO
+
+CREATE DATABASE sampledb;
+GO
+
+USE [sampledb];
+GO
+
+-- IF EXISTS(SELECT name FROM sys.tables WHERE name = N'greek')
+IF OBJECT_ID (N'greek', N'U') IS NOT NULL
+DROP TABLE [greek];
+GO
+
+CREATE TABLE greek
+(
+  id int IDENTITY(1,1),
+  name nvarchar(max),
+  rgb nvarchar(max),
+  score int
+);
+GO
+
+SELECT * FROM greek;
+GO
+
+INSERT INTO greek 
+SELECT 'Alpha', 'Green', 85 UNION ALL
+SELECT 'Beta', 'Green', 85 UNION ALL
+SELECT 'Gamma', 'Green', 80 UNION ALL
+SELECT 'Delta', 'Blue', 70 UNION ALL
+SELECT 'Epsilon', 'Blue', 71 UNION ALL
+SELECT 'Zeta', 'Blue', 72 UNION ALL
+SELECT 'Eta', 'Blue', 73 UNION ALL
+SELECT 'Theta', 'Blue', 74 UNION ALL
+SELECT 'Iota', 'Red', 60 UNION ALL
+SELECT 'Kappa', 'Red', 60 UNION ALL
+SELECT 'Lambda', 'Red', 60 UNION ALL
+SELECT 'Mu', 'Red', 65 UNION ALL
+SELECT 'Nu', 'Green', 89 UNION ALL
+SELECT 'Xi', 'Green', 87 UNION ALL
+SELECT 'Omicron', 'Green', 89;
+GO
+
+SELECT * FROM greek;
+GO
+
+-- sys.views contains a row for each view object, with sys.objects.type = V
+-- sys.all_views shows the UNION of all user-defined and system views
+
+IF EXISTS(SELECT name FROM sys.views WHERE name = N'V1' and type = N'V')
+-- IF OBJECT_ID(N'V1', N'V') IS NOT NULL
+DROP VIEW V1;
+GO
+
+CREATE VIEW V1
+AS
+-- Cannot update the view "V1" because it or a view it references was created with WITH CHECK OPTION and its definition contains a TOP or OFFSET clause.
+-- SELECT * FROM greek ORDER BY id OFFSET 5 ROW FETCH NEXT 5 ROWS ONLY
+SELECT * FROM greek WHERE (score % 2 = 0)
+WITH CHECK OPTION;
+GO
+
+SELECT * FROM V1;
+GO
+
+SELECT * FROM greek;
+GO
+
+DELETE FROM V1;
+GO
+
+SELECT * FROM V1;
+GO
+
+SELECT * FROM greek;
+GO
+
+INSERT INTO V1 
+-- The attempted insert or update failed because the target view either specifies WITH CHECK OPTION or spans a view that specifies WITH CHECK OPTION and one or more rows resulting from the operation did not qualify under the CHECK OPTION constraint.
+-- SELECT 'Pi', 'Red', 65 UNION ALL
+-- SELECT 'Rho', 'Blue', 75 UNION ALL
+-- SELECT 'Sigma', 'Green', 85 UNION ALL
+SELECT 'Tau', 'Red', 60 UNION ALL
+SELECT 'Upsilon', 'Blue', 70 UNION ALL
+SELECT 'Phi', 'Green', 80;
+GO
+
+SELECT * FROM V1;
+GO
+
+SELECT * FROM greek;
+GO
+
+UPDATE V1
+-- The attempted insert or update failed because the target view either specifies WITH CHECK OPTION or spans a view that specifies WITH CHECK OPTION and one or more rows resulting from the operation did not qualify under the CHECK OPTION constraint.
+-- SET score = 85
+SET score = 82
+WHERE name = 'Phi' AND rgb = 'Green';
+GO
+
+SELECT * FROM V1;
+GO
+
+SELECT * FROM greek;
+GO
+
+-- Note
+/*
+IMPORTANT!
+-- You cannot insert a row if the view references more than one base table.
+-- You cannot delete a row if the view references more than one base table.
+-- You can only update columns that belong to a single base table.
+Updatable Views
+-- You can modify the data of an underlying base table through a view, as long as the following conditions are true:
+-- Any modifications, including UPDATE, INSERT, and DELETE statements, must reference columns from only one base table.
+-- The columns being modified in the view must directly reference the underlying data in the table columns. The columns cannot be derived in any other way, such as through the following:
+-- An aggregate function: AVG, COUNT, SUM, MIN, MAX, GROUPING, STDEV, STDEVP, VAR, and VARP.
+-- A computation. The column cannot be computed from an expression that uses other columns. Columns that are formed by using the set operators UNION, UNION ALL, CROSSJOIN, EXCEPT, and INTERSECT amount to a computation and are also not updatable.
+-- The columns being modified are not affected by GROUP BY, HAVING, or DISTINCT clauses.
+-- TOP is not used anywhere in the select_statement of the view together with the WITH CHECK OPTION clause.
+-- The previous restrictions apply to any subqueries in the FROM clause of the view, just as they apply to the view itself. Generally, the Database Engine must be able to unambiguously trace modifications from the view definition to one base table.
+Permissions
+-- Requires UPDATE, INSERT, or DELETE permissions on the target table, depending on the action being performed.
+*/
+
+USE [master];
+GO
+
+-- IF EXISTS(SELECT name FROM sys.databases WHERE name = N'sampledb')
+IF DB_ID (N'sampledb') IS NOT NULL
+DROP DATABASE [sampledb];
+GO
+
+CREATE DATABASE sampledb;
+GO
+
+USE [sampledb];
+GO
+
+-- IF EXISTS(SELECT name FROM sys.tables WHERE name = N'greek1')
+IF OBJECT_ID (N'greek1', N'U') IS NOT NULL
+DROP TABLE [greek1];
+GO
+
+CREATE TABLE greek1
+(
+  id int IDENTITY(1,1),
+  name nvarchar(max),
+  rgb nvarchar(max),
+  score int
+);
+GO
+
+-- IF EXISTS(SELECT name FROM sys.tables WHERE name = N'greek2')
+IF OBJECT_ID (N'greek2', N'U') IS NOT NULL
+DROP TABLE [greek2];
+GO
+CREATE TABLE greek2
+(
+  id int IDENTITY(1,1),
+  name nvarchar(max),
+  rgb nvarchar(max),
+  score int
+);
+GO
+
+SELECT * FROM greek1;
+GO
+
+INSERT INTO greek1 
+SELECT 'Alpha', 'Green', 85 UNION ALL
+SELECT 'Beta', 'Green', 85 UNION ALL
+SELECT 'Gamma', 'Green', 80;
+GO
+
+SELECT * FROM greek1;
+GO
+
+INSERT INTO greek2 
+SELECT 'Delta', 'Blue', 70 UNION ALL
+SELECT 'Epsilon', 'Blue', 71 UNION ALL
+SELECT 'Zeta', 'Blue', 72;
+GO
+
+SELECT * FROM greek2;
+GO
+
+-- sys.views contains a row for each view object, with sys.objects.type = V
+-- sys.all_views shows the UNION of all user-defined and system views
+
+IF EXISTS(SELECT name FROM sys.views WHERE name = N'V1' and type = N'V')
+-- IF OBJECT_ID(N'V1', N'V') IS NOT NULL
+DROP VIEW V1;
+GO
+
+CREATE VIEW V1
+AS
+-- Column names in each view or function must be unique.
+SELECT 
+g1.id id1, g1.name name1, g1.rgb rgb1, g1.score score1, 
+g2.id id2, g2.name name2, g2.rgb rgb2, g2.score score2
+FROM greek1 g1
+LEFT JOIN greek2 g2 ON g1.id = g2.id;
+GO
+
+SELECT * FROM V1;
+GO
+
+SELECT * FROM greek1;
+GO
+
+SELECT * FROM greek2;
+GO
+
+-- View or function 'V1' is not updatable because the modification affects multiple base tables.
+-- DELETE FROM V1;
+-- DELETE FROM V1 WHERE name1 = 'Alpha'
+-- GO
+
+INSERT INTO V1 (name1, score1) VALUES ('psi', 0);
+GO
+
+SELECT * FROM V1;
+GO
+
+SELECT * FROM greek1;
+GO
+
+SELECT * FROM greek2;
+GO
+
+INSERT INTO V1 (rgb2) VALUES ('#000000');
+GO
+
+SELECT * FROM V1;
+GO
+
+SELECT * FROM greek1;
+GO
+
+SELECT * FROM greek2;
+GO
+
+UPDATE V1
+-- View or function 'V1' is not updatable because the modification affects multiple base tables.
+-- SET name1 = 'Omega', rgb1 = '#00FF00', score1 = 100, name2 = 'Chi', rgb2 = '#0000FF', score2 = 1
+SET name1 = 'Omega', rgb1 = '#00FF00', score1 = 100
+WHERE id1 = 1;
+GO
+
+SELECT * FROM V1;
+GO
+
+SELECT * FROM greek1;
+GO
+
+SELECT * FROM greek2;
+GO
+
+UPDATE V1
+-- View or function 'V1' is not updatable because the modification affects multiple base tables.
+-- SET name1 = 'Omega', rgb1 = '#00FF00', score1 = 100, name2 = 'Chi', rgb2 = '#0000FF', score2 = 1
+SET name2 = 'Chi', rgb2 = '#0000FF', score2 = 1
+WHERE id1 = 1;
+GO
+
+SELECT * FROM V1;
+GO
+
+SELECT * FROM greek1;
+GO
+
+SELECT * FROM greek2;
+GO
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- sqllocaldb
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- (localdb)\MSSQLLocalDB # (localdb)\SampleInstance
+-- Windows Authentication
+
+-- AppData\Local\Microsoft\Microsoft SQL Server Local DB\Instances\SampleInstance
+sqllocaldb create "SampleInstance"
+sqllocaldb stop "SampleInstance"
+sqllocaldb delete "SampleInstance"
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- sqlcmd
+
+---------------------------------------------------------------------------------------------------------------------------
+
+$ winpty sqlcmd -S "(localdb)\MSSQLLocalDB"
+> sqlcmd -S "(localdb)\MSSQLLocalDB"
+$ winpty sqlcmd -S "(localdb)\SampleInstance"
+> sqlcmd -S "(localdb)\SampleInstance"
+
+
+sqlcmd -S "(localdb)\MSSQLLocalDB" -E -Q "ALTER LOGIN sa ENABLE"
+sqlcmd -S "(localdb)\SampleInstance" -E -Q "ALTER LOGIN sa ENABLE"
+
+
+sqlcmd -S "(localdb)\MSSQLLocalDB" -E -Q "ALTER LOGIN sa WITH PASSWORD = '*************'"
+sqlcmd -S "(localdb)\SampleInstance" -E -Q "ALTER LOGIN sa WITH PASSWORD = '*************'"
+
+
+$ winpty sqlcmd -S "(localdb)\MSSQLLocalDB" -U sa
+> sqlcmd -S "(localdb)\MSSQLLocalDB" -U sa
+$ winpty sqlcmd -S "(localdb)\SampleInstance" -U sa
+> sqlcmd -S "(localdb)\SampleInstance" -U sa
+
+
+sqlcmd -S "(localdb)\MSSQLLocalDB" -Q "SELECT @@VERSION;"
+sqlcmd -S "(localdb)\SampleInstance" -Q "SELECT @@VERSION;"
+
+
+$ winpty sqlcmd -S "(localdb)\MSSQLLocalDB" -U sa -P "*************"
+$ winpty sqlcmd -S "(localdb)\SampleInstance" -U sa -P "*************"
+> sqlcmd -S "(localdb)\MSSQLLocalDB" -U sa -P *************
+> sqlcmd -S "(localdb)\SampleInstance" -U sa -P *************
+
+-- SQL Server
+
+> :XML ON
+
+> BACKUP DATABASE [northwind] TO DISK = 'D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\BAK\northwind.bak';  
+> GO  
+
+
+[
+> SELECT DB_NAME();
+> GO
+
+> USE [master];
+> GO
+]
+
+> DROP DATABASE [northwind]; 
+> GO
+
+> RESTORE FILELISTONLY FROM DISK = 'D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\BAK\northwind.bak';
+> GO
+
+> RESTORE DATABASE [northwind]
+FROM DISK = 'D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\BAK\northwind.bak'
+WITH MOVE 'northwind' TO 'D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\MDF and LDF\northwind.mdf',
+MOVE 'northwind_log' TO 'D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\MDF and LDF\northwind.ldf';
+> GO
+
+
+> EXEC sp_attach_db @dbname = N'northwind', 
+    @filename1 = 
+N'D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\MDF and LDF\northwind.mdf',   
+    @filename2 = 
+N'D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\MDF and LDF\northwind.ldf';  
+> GO
+
+> SELECT @@VERSION;
+> GO
+Microsoft SQL Server 2016 (SP1) (KB3182545) - 13.0.4001.0 (X64)
+        Oct 28 2016 18:17:30
+        Copyright (c) Microsoft Corporation
+        Express Edition (64-bit) on Windows 10 Pro 6.3 <X64> (Build 18363: ) (Hypervisor)
+
+> :help
+[
+> :quit
+]
+> :exit
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- sqlpackage
+
+---------------------------------------------------------------------------------------------------------------------------
+
+$ export PATH=$PATH:"/C/Program Files (x86)/Microsoft SQL Server/140/DAC/bin/"
+> set path=%path%;C:\Program Files (x86)\Microsoft SQL Server\140\DAC\bin\
+
+-- Visual Studio
+$ export PATH=$PATH:"/C/Program Files (x86)/Microsoft Visual Studio/2019/Professional/Common7/IDE/Extensions/Microsoft/SQLDB/DAC/150/"
+> set path=%path%;C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\Common7\IDE\Extensions\Microsoft\SQLDB\DAC\150\
+
+-- Import
+$ sqlpackage -a:Import -tsn:"(localdb)\MSSQLLocalDB" -sf:"D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\SQL Server Sample Databases\BACPAC\northwind.bacpac" -tdn:northwind
+> sqlpackage /a:Import /tsn:"(localdb)\MSSQLLocalDB" /sf:"D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\SQL Server Sample Databases\BACPAC\northwind.bacpac" /tdn:northwind
+
+-- Export
+$ sqlpackage -a:Export -ssn:"(localdb)\MSSQLLocalDB" -sdn:"northwind" -tf:"D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\BACPAC\northwind.bacpac"
+> sqlpackage /a:Export /ssn:"(localdb)\MSSQLLocalDB" /sdn:"northwind" /tf:"D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\BACPAC\northwind.bacpac"
+
+-- Extract
+$ sqlpackage -TargetFile:"D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\DACPAC\northwind.dacpac" -Action:Extract -SourceServerName:"(localdb)\MSSQLLocalDB" -SourceDatabaseName:"northwind"
+
+-- Extract, SourceUser, SourcePassword
+$ sqlpackage -TargetFile:"D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\DACPAC\northwind.dacpac" -Action:Extract -SourceServerName:"(localdb)\MSSQLLocalDB" -SourceDatabaseName:"northwind" -SourceUser:"sa" -SourcePassword:'*************'
+> sqlpackage /TargetFile:"D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\DACPAC\northwind.dacpac" /Action:Extract /SourceServerName:"(localdb)\MSSQLLocalDB" /SourceDatabaseName:"northwind"
+> sqlpackage /TargetFile:"D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\DACPAC\northwind.dacpac" /Action:Extract /SourceServerName:"(localdb)\MSSQLLocalDB" /SourceDatabaseName:"northwind" /SourceUser:"sa" /SourcePassword:"*************"
+
+-- DacUnpack
+$ dacunpack "D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\DACPAC\northwind.dacpac" 
+> dacunpack "D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\DACPAC\northwind.dacpac" 
+
+-- Publish
+$ sqlpackage -Action:Publish -SourceFile:"D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\DACPAC\northwind.dacpac" -TargetDatabaseName:northwind -TargetServerName:"(localdb)\MSSQLLocalDB"
+> sqlpackage /Action:Publish /SourceFile:"D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\DACPAC\northwind.dacpac" /TargetDatabaseName:northwind /TargetServerName:"(localdb)\MSSQLLocalDB"
+
+-- Publish, TargetUser, TargetPassword
+$ sqlpackage -Action:Publish -SourceFile:"D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\DACPAC\northwind.dacpac" -TargetDatabaseName:northwind -TargetServerName:"(localdb)\MSSQLLocalDB" -TargetUser:"sa" -TargetPassword:'*************'
+> sqlpackage /Action:Publish /SourceFile:"D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\DACPAC\northwind.dacpac" /TargetDatabaseName:northwind /TargetServerName:"(localdb)\MSSQLLocalDB" /TargetUser:"sa" /TargetPassword:"*************"
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- bcp
+
+---------------------------------------------------------------------------------------------------------------------------
+
+$ bcp [dbo].[Customers] OUT "D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\DAT\northwind_customers.dat" -T -c -S "(localdb)\MSSQLLocalDB" -d northwind -U sa -P *************
+> bcp [dbo].[Customers] OUT "D:\RajaniS Master Folder\SQL\SQL Server\SQL Server Sample Databases\SQL Server\DAT\northwind_customers.dat" -T -c -S "(localdb)\MSSQLLocalDB" -d northwind -U sa -P *************
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- Modify Database Name # Move MDF and LDF # Modify physical_name # Rename MDF and LDF # Modify logical_file_name
+
+---------------------------------------------------------------------------------------------------------------------------
+
+USE [master];
+GO
+
+IF EXISTS(SELECT name FROM sys.databases WHERE name = N'northwind')
+-- IF DB_ID (N'northwind') IS NOT NULL
+ALTER DATABASE [northwind] MODIFY NAME = [northwind_backup];
+GO
+
+
+USE [northwind_backup];
+GO
+
+SELECT file_id, name as [logical_file_name], physical_name FROM sys.database_files;
+GO
+
+
+USE [master];
+GO
+
+-- Set database to single-user mode that specifies only one user at a time can access the database
+ALTER DATABASE [northwind_backup] SET SINGLE_USER WITH ROLLBACK IMMEDIATE
+GO
+
+-- The database is closed, shut down cleanly, and marked offline. The database can't be modified while it's offline.
+ALTER DATABASE [northwind_backup] SET OFFLINE;
+GO
+
+
+-- Verify if database is OFFLINE or ONLINE
+SELECT [name], [state_desc] FROM sys.databases;
+GO
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- xp_cmdshell
+
+---------------------------------------------------------------------------------------------------------------------------
+
+-- Move MDF and LDF
+EXEC xp_cmdshell 'MOVE "C:\Users\rajanis\AppData\Local\Microsoft\Microsoft SQL Server Local DB\Instances\MSSQLLocalDB\northwind_Primary.mdf", "C:\Users\rajanis\northwind_Primary.mdf"';
+GO
+
+EXEC xp_cmdshell 'MOVE "C:\Users\rajanis\AppData\Local\Microsoft\Microsoft SQL Server Local DB\Instances\MSSQLLocalDB\northwind_Primary.ldf", "C:\Users\rajanis\northwind_Primary.ldf"';
+GO
+
+
+-- Modify physical_name
+ALTER DATABASE [northwind_backup] MODIFY FILE (NAME = 'northwind', FILENAME = 'C:\Users\rajanis\northwind_backup.mdf')
+GO
+
+ALTER DATABASE [northwind_backup] MODIFY FILE (NAME = 'northwind_log', FILENAME='C:\Users\rajanis\northwind_backup_log.ldf')
+GO
+
+
+-- Rename MDF and LDF
+EXEC xp_cmdshell 'RENAME "C:\Users\rajanis\northwind_Primary.mdf", "northwind_backup.mdf"';
+GO
+
+EXEC xp_cmdshell 'RENAME "C:\Users\rajanis\northwind_Primary.ldf", "northwind_backup_log.ldf"';
+GO
+
+
+USE [master];
+GO
+
+-- The database is open and available for use.
+ALTER DATABASE [northwind_backup] SET ONLINE
+GO
+
+-- Set database to multi-user mode
+ALTER DATABASE [northwind_backup] SET MULTI_USER
+GO
+
+
+-- Modify logical_file_name
+ALTER DATABASE [northwind_backup] MODIFY FILE (NAME = 'northwind', NEWNAME = 'northwind_backup')
+GO
+
+ALTER DATABASE [northwind_backup] MODIFY FILE (NAME = 'northwind_log', NEWNAME = 'northwind_backup_log')
+GO
+
+
+USE [northwind_backup];
+GO
+
+SELECT file_id, name as [logical_file_name], physical_name FROM sys.database_files;
+GO
+
+---------------------------------------------------------------------------------------------------------------------------
+/*************************************************************************************************************************/
+
+
+/*************************************************************************************************************************/
+
+-- Oracle
+
+/*************************************************************************************************************************/
+
+/*
+Username: 
+OracleHome
+Password:
+*********
+
+Global database name:
+orcl
+
+[
+Username: 
+SYSTEM
+]
+
+Password:
+************
+
+Pluggable database name:
+orclpdb
+*/
+
+
+-- Git Bash
+$ sqlplus -version
+SQL*Plus: Release 12.2.0.1.0 Production
+$ sqlplus -V
+SQL*Plus: Release 12.2.0.1.0 Production
+$ sqlplus SYSTEM/************
+SQL> HELP INDEX
+-- OR
+SQL> ? INDEX
+SQL> QUIT
+-- OR
+SQL> EXIT
+
+
+-- Command Line
+> sqlplus -version
+SQL*Plus: Release 12.2.0.1.0 Production
+> sqlplus -V
+SQL*Plus: Release 12.2.0.1.0 Production
+> sqlplus SYSTEM/************
+SQL> HELP INDEX
+-- OR
+SQL> ? INDEX
+SQL> QUIT
+-- OR
+SQL> EXIT
+
+
+$ sqlplus SYSTEM/************
+
+[
+$ sqlplus SYSTEM/************@orcl
+
+$ sqlplus SYSTEM/************@localhost:1521/orcl
+]
+
+[
+-- CONNECT username/password
+CONNECT SYSTEM/************
+
+-- CONNECT username/password@connect_identifier
+CONNECT SYSTEM/************@orcl
+
+-- CONNECT username/password@[//]host[:port][/service_name]
+CONNECT SYSTEM/************@localhost:1521/orcl
+]
+
+[
+SQL> ? INDEX
+SQL> HELP INDEX
+SQL> SELECT owner, table_name FROM all_tables;
+SQL> SELECT owner, table_name FROM dba_tables;
+SQL> SELECT * from v$database;
+SQL> SELECT * from gv$instance;
+]
+
+-- Version
+SELECT * FROM v$version;
+
+-- USER
+SELECT user FROM DUAL;
+
+-- INSTANCE_NAME
+SELECT sys_context('USERENV','INSTANCE_NAME') FROM DUAL;
+-- SID
+SELECT sys_context('USERENV', 'SID') FROM DUAL;
+-- DB_NAME
+SELECT sys_context('USERENV','DB_NAME') FROM DUAL;
+-- SERVICE_NAME
+SELECT sys_context('USERENV','SERVICE_NAME') FROM DUAL;
+
+-- ORA_DATABASE_NAME
+SELECT ora_database_name FROM DUAL;
+
+-- GLOBAL_NAME
+SELECT * from global_name;
+
+-- Tables in USER
+SELECT table_name FROM user_tables;
+
+-- DROP SEQUENCE seq_id;
+
+CREATE SEQUENCE seq_id
+MINVALUE 1
+START WITH 1
+INCREMENT BY 1
+CACHE 10;
+
+-- DROP TABLE users;
+
+CREATE TABLE users
+(
+    id INT NOT NULL,
+    username VARCHAR(50) NOT NULL, 
+    login_date DATE NOT NULL,
+    login_time VARCHAR(10) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,    
+    CONSTRAINT pk_id PRIMARY KEY(id),
+    CONSTRAINT idx_username UNIQUE(username)    
+);
+
+COMMIT;
+
+INSERT INTO users(id, username, login_date, login_time, created_at, updated_at)
+VALUES
+(
+seq_id.nextval,
+'Foo', 
+TO_DATE('2016-11-06', 'YYYY-MM-DD'), 
+'10:49:35', 
+TO_TIMESTAMP('2016-11-06 10:49:35.0', 'YYYY-MM-DD HH:MI:SS.FF'), 
+TO_TIMESTAMP('2016-11-06 10:49:35.0', 'YYYY-MM-DD HH:MI:SS.FF')
+);
+
+COMMIT;
+
+SELECT * FROM users;
+
+-- Columns
+[
+SELECT * FROM ALL_TAB_COLUMNS WHERE  table_name = 'USERS';
+SELECT * FROM USER_TAB_COLUMNS WHERE  table_name = 'USERS';
+-- OR
+SELECT * FROM ALL_TAB_COLUMNS WHERE LOWER(table_name) = 'users';
+SELECT * FROM USER_TAB_COLUMNS WHERE LOWER(table_name) = 'users';
+-- OR 
+SELECT table_name, column_name, data_type, data_length FROM ALL_TAB_COLUMNS WHERE table_name = 'USERS';
+SELECT table_name, column_name, data_type, data_length FROM USER_TAB_COLUMNS WHERE table_name = 'USERS';
+-- OR
+SELECT table_name, column_name, data_type, data_length FROM ALL_TAB_COLUMNS WHERE LOWER(table_name) = 'users';
+SELECT table_name, column_name, data_type, data_length FROM USER_TAB_COLUMNS WHERE LOWER(table_name) = 'users';
+-- OR
+SELECT column_name FROM ALL_TAB_COLUMNS WHERE table_name = 'USERS';
+SELECT column_name FROM USER_TAB_COLUMNS WHERE table_name = 'USERS';
+]
+SELECT column_name FROM ALL_TAB_COLUMNS WHERE LOWER(table_name) = 'users';
+SELECT column_name FROM USER_TAB_COLUMNS WHERE LOWER(table_name) = 'users';
+
+
+-- DATE
+SELECT SYSDATE FROM DUAL;
+SELECT SYSTIMESTAMP FROM DUAL;
+
+SELECT TO_DATE('2016-11-06', 'YYYY-MM-DD') FROM DUAL;
+SELECT TO_DATE('2016-11-06 10:49:35', 'YYYY-MM-DD HH:MI:SS') FROM DUAL;
+
+SELECT TO_CHAR(SYSDATE,'HH:MI:SS AM') FROM DUAL;
+SELECT TO_CHAR(SYSDATE,'HH24:MI:SS') FROM DUAL;
+SELECT TO_CHAR(SYSTIMESTAMP,'HH:MI:SS AM') FROM DUAL;
+SELECT TO_CHAR(SYSTIMESTAMP,'HH24:MI:SS') FROM DUAL;
+SELECT TO_CHAR(TO_DATE('2016-11-06 10:49:35', 'YYYY-MM-DD HH:MI:SS'), 'HH:MI:SS') FROM DUAL;
+
+SELECT TO_TIMESTAMP('10-Sep-02 14:10:10.123000', 'DD-Mon-RR HH24:MI:SS.FF') FROM DUAL;
+SELECT TO_TIMESTAMP('12:10:10', 'HH:MI:SS') FROM DUAL;
+SELECT TO_TIMESTAMP('14:10:10', 'HH24:MI:SS') FROM DUAL;
+
+
+[
+-- SQL Developer
+-- Connection Name
+-- sampledb 
+Username:
+SYSTEM
+Password:
+************
+
+Hostname: localhost
+Port: 1521
+SID: orcl
+]
+
+
+[
+-- NoSQL
+NoSQL_Connection
+SYSTEM
+************
+localhost:5000
+kvstore
+]
+
+/*************************************************************************************************************************/
+
+
+/*************************************************************************************************************************/
+
+-- SQLite
+
+/*************************************************************************************************************************/
+
+-- Command Line
+>sqlite3 -version
+3.8.7.2 2014-11-18 20:57:56 2ab564bf9655b7c7b97ab85cafc8a48329b27f93
+-- OR
+>sqlite3 -- version
+3.8.7.2 2014-11-18 20:57:56 2ab564bf9655b7c7b97ab85cafc8a48329b27f93
+> sqlite3
+sqlite> .quit
+-- OR
+sqlite> .q
+-- OR
+sqlite> .exit
+-- OR
+sqlite> .ex
+
+
+-- Git Bash
+$ winpty sqlite3 -version
+3.8.7.2 2014-11-18 20:57:56 2ab564bf9655b7c7b97ab85cafc8a48329b27f93
+-- OR
+$ winpty sqlite3 -- version
+3.8.7.2 2014-11-18 20:57:56 2ab564bf9655b7c7b97ab85cafc8a48329b27f93
+$ winpty sqlite3
+> sqlite3
+sqlite> .quit
+-- OR
+sqlite> .q
+-- OR
+sqlite> .exit
+-- OR
+sqlite> .ex
+
+
+$ winpty sqlite3 customerdb.sqlite4
+SQLite version 3.8.7.2 2014-11-18 20:57:56
+Enter ".help" for usage hints.
+sqlite> .databases
+seq  name             file
+-- -  -- -- -- -- -- -- -- -  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+0    main             E:\Working\SQL\SQLite\customerdb.sqlite4
+sqlite> DROP TABLE IF EXISTS Customer;
+sqlite> CREATE TABLE Customer
+(
+    CustomerId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    FirstName TEXT,
+    LastName TEXT,
+    Technology TEXT
+);
+sqlite> INSERT INTO Customer(FirstName, LastName, Technology)
+VALUES('Bill', 'Gates', 'Microsoft');
+sqlite> INSERT INTO Customer(FirstName, LastName, Technology)
+VALUES('Larry', 'Page', 'Google');
+sqlite> INSERT INTO Customer(FirstName, LastName, Technology)
+VALUES('Steve', 'Jobs', 'Apple');
+sqlite> INSERT INTO Customer(FirstName, LastName, Technology)
+VALUES('Anders', 'Hejlsberg', 'C#');
+sqlite> INSERT INTO Customer(FirstName, LastName, Technology)
+VALUES('Bjarne', 'Stroustrup', 'C++');
+sqlite> INSERT INTO Customer(FirstName, LastName, Technology)
+VALUES('James', 'Gosling', 'Java');
+sqlite> INSERT INTO Customer(FirstName, LastName, Technology)
+VALUES('Scott', 'Guthrie', 'ASP.NET');
+sqlite> INSERT INTO Customer(FirstName, LastName, Technology)
+VALUES('Don', 'Syme', 'F#');
+sqlite> INSERT INTO Customer(FirstName, LastName, Technology)
+VALUES('Dennis', 'Ritchie', 'C');
+sqlite> INSERT INTO Customer(FirstName, LastName, Technology)
+VALUES('Hasso', 'Plattner', 'SAP');
+sqlite> SELECT * FROM Customer;
+sqlite> INSERT INTO Customer(FirstName, LastName, Technology)
+SELECT 'Brendan', 'Eich', 'JavaScript'
+UNION ALL
+SELECT 'Guido', 'van Rossum', 'Python'
+UNION ALL
+SELECT 'Yukihiro', 'Matsumoto', 'Ruby';
+sqlite> SELECT * FROM Customer;
+sqlite> INSERT INTO Customer (FirstName, LastName, Technology)
+VALUES
+('Rasmus', 'Lerdorf', 'PHP'),
+('Martin', 'Odersky', 'Scala'),
+('Donald', 'D. Chamberlin', 'SQL');
+sqlite> SELECT * FROM Customer;
+sqlite> .q
+
+
+$ winpty sqlite3 customerdb.sqlite4
+SQLite version 3.8.7.2 2014-11-18 20:57:56
+Enter ".help" for usage hints.
+sqlite> .help
+.backup ?DB? FILE      Backup DB (default "main") to FILE
+.bail on|off           Stop after hitting an error.  Default OFF
+.clone NEWDB           Clone data into NEWDB from the existing database
+.databases             List names and files of attached databases
+.dump ?TABLE? ...      Dump the database in an SQL text format
+                         If TABLE specified, only dump tables matching
+                         LIKE pattern TABLE.
+.echo on|off           Turn command echo on or off
+.eqp on|off            Enable or disable automatic EXPLAIN QUERY PLAN
+.exit                  Exit this program
+.explain ?on|off?      Turn output mode suitable for EXPLAIN on or off.
+                         With no args, it turns EXPLAIN on.
+.fullschema            Show schema and the content of sqlite_stat tables
+.headers on|off        Turn display of headers on or off
+.help                  Show this message
+.import FILE TABLE     Import data from FILE into TABLE
+.indices ?TABLE?       Show names of all indices
+                         If TABLE specified, only show indices for tables
+                         matching LIKE pattern TABLE.
+.load FILE ?ENTRY?     Load an extension library
+.log FILE|off          Turn logging on or off.  FILE can be stderr/stdout
+.mode MODE ?TABLE?     Set output mode where MODE is one of:
+                         csv      Comma-separated values
+                         column   Left-aligned columns.  (See .width)
+                         html     HTML <table> code
+                         insert   SQL insert statements for TABLE
+                         line     One value per line
+                         list     Values delimited by .separator string
+                         tabs     Tab-separated values
+                         tcl      TCL list elements
+.nullvalue STRING      Use STRING in place of NULL values
+.once FILENAME         Output for the next SQL command only to FILENAME
+.open ?FILENAME?       Close existing database and reopen FILENAME
+.output ?FILENAME?     Send output to FILENAME or stdout
+.print STRING...       Print literal STRING
+.prompt MAIN CONTINUE  Replace the standard prompts
+.quit                  Exit this program
+.read FILENAME         Execute SQL in FILENAME
+.restore ?DB? FILE     Restore content of DB (default "main") from FILE
+.save FILE             Write in-memory database into FILE
+.schema ?TABLE?        Show the CREATE statements
+                         If TABLE specified, only show tables matching
+                         LIKE pattern TABLE.
+.separator STRING ?NL? Change separator used by output mode and .import
+                         NL is the end-of-line mark for CSV
+.shell CMD ARGS...     Run CMD ARGS... in a system shell
+.show                  Show the current values for various settings
+.stats on|off          Turn stats on or off
+.system CMD ARGS...    Run CMD ARGS... in a system shell
+.tables ?TABLE?        List names of tables
+                         If TABLE specified, only list tables matching
+                         LIKE pattern TABLE.
+.timeout MS            Try opening locked tables for MS milliseconds
+.timer on|off          Turn SQL timer on or off
+.trace FILE|off        Output each SQL statement as it is run
+.vfsname ?AUX?         Print the name of the VFS stack
+.width NUM1 NUM2 ...   Set column widths for "column" mode
+                         Negative values right-justify
+sqlite> .databases
+seq  name             file
+-- -  -- -- -- -- -- -- -- -  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+0    main             E:\Working\SQL\SQLite\customerdb.sqlite4
+sqlite> .tables
+Customer
+sqlite> .schema Customer
+CREATE TABLE Customer
+(
+    CustomerId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    FirstName TEXT,
+    LastName TEXT,
+    Technology TEXT
+);
+sqlite> .fullschema
+CREATE TABLE Customer
+(
+    CustomerId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    FirstName TEXT,
+    LastName TEXT,
+    Technology TEXT
+);
+/* No STAT tables available */
+sqlite> SELECT * FROM Customer;
+1|Bill|Gates|Microsoft
+2|Larry|Page|Google
+3|Steve|Jobs|Apple
+4|Anders|Hejlsberg|C#
+5|Bjarne|Stroustrup|C++
+6|James|Gosling|Java
+7|Scott|Guthrie|ASP.NET
+8|Don|Syme|F#
+9|Dennis|Ritchie|C
+10|Hasso|Plattner|SAP
+11|Brendan|Eich|JavaScript
+12|Guido|van Rossum|Python
+13|Yukihiro|Matsumoto|Ruby
+14|Rasmus|Lerdorf|PHP
+15|Martin|Odersky|Scala
+16|Donald|D. Chamberlin|SQL
+sqlite> SELECT * FROM Customer UNION SELECT * FROM Customer;
+1|Bill|Gates|Microsoft
+2|Larry|Page|Google
+3|Steve|Jobs|Apple
+4|Anders|Hejlsberg|C#
+5|Bjarne|Stroustrup|C++
+6|James|Gosling|Java
+7|Scott|Guthrie|ASP.NET
+8|Don|Syme|F#
+9|Dennis|Ritchie|C
+10|Hasso|Plattner|SAP
+11|Brendan|Eich|JavaScript
+12|Guido|van Rossum|Python
+13|Yukihiro|Matsumoto|Ruby
+14|Rasmus|Lerdorf|PHP
+15|Martin|Odersky|Scala
+16|Donald|D. Chamberlin|SQL
+sqlite> SELECT * FROM Customer UNION ALL SELECT * FROM Customer;
+1|Bill|Gates|Microsoft
+2|Larry|Page|Google
+3|Steve|Jobs|Apple
+4|Anders|Hejlsberg|C#
+5|Bjarne|Stroustrup|C++
+6|James|Gosling|Java
+7|Scott|Guthrie|ASP.NET
+8|Don|Syme|F#
+9|Dennis|Ritchie|C
+10|Hasso|Plattner|SAP
+11|Brendan|Eich|JavaScript
+12|Guido|van Rossum|Python
+13|Yukihiro|Matsumoto|Ruby
+14|Rasmus|Lerdorf|PHP
+15|Martin|Odersky|Scala
+16|Donald|D. Chamberlin|SQL
+1|Bill|Gates|Microsoft
+2|Larry|Page|Google
+3|Steve|Jobs|Apple
+4|Anders|Hejlsberg|C#
+5|Bjarne|Stroustrup|C++
+6|James|Gosling|Java
+7|Scott|Guthrie|ASP.NET
+8|Don|Syme|F#
+9|Dennis|Ritchie|C
+10|Hasso|Plattner|SAP
+11|Brendan|Eich|JavaScript
+12|Guido|van Rossum|Python
+13|Yukihiro|Matsumoto|Ruby
+14|Rasmus|Lerdorf|PHP
+15|Martin|Odersky|Scala
+16|Donald|D. Chamberlin|SQL
+sqlite> .q
+
+
+DROP TABLE IF EXISTS users;
+CREATE TABLE users
+(
+    -- id INTEGER NOT NULL,
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    username VARCHAR(50) NOT NULL, 
+    login_date DATE DEFAULT CURRENT_DATE,
+    login_time TIME DEFAULT CURRENT_TIME,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT LOCALTIMESTAMP,    
+    -- CONSTRAINT pk_id PRIMARY KEY(id),
+    CONSTRAINT idx_username UNIQUE(username)    
+);
+
+SELECT * FROM users;
+
+INSERT INTO users(username, login_date, login_time, created_at, updated_at)
+VALUES('Foo', '2016-11-06', '10:49:35', '2016-11-06 10:49:35.0', '2016-11-06 10:49:35.0');
+
+SELECT * FROM users;
+
+INSERT INTO users
+VALUES(0, 'Bar', '2016-11-06', '10:49:35', '2016-11-06 10:49:35.0', '2016-11-06 10:49:35.0');
+
+SELECT * FROM users;
+
+SELECT ROWID,* FROM users WHERE ROWID > 0;
+
+/*************************************************************************************************************************/
+
+--  SQLite JOIN
+
+DROP TABLE Table1
+
+CREATE TABLE Table1
+(
+    ID INT, 
+    Value VARCHAR(10)
+);
+
+INSERT INTO Table1 (ID, Value)
+SELECT 1, 'First'
+UNION ALL
+SELECT 2, 'Second'
+UNION ALL
+SELECT 3, 'Third'
+UNION ALL
+SELECT 4, 'Fourth'
+UNION ALL
+SELECT 5, 'Fifth';
+
+
+DROP TABLE Table2
+
+CREATE TABLE Table2
+(ID INT, Value VARCHAR(10));
+
+INSERT INTO Table2 (ID, Value)
+SELECT 1, 'I'
+UNION ALL
+SELECT 2, 'II'
+UNION ALL
+SELECT 3, 'III'
+UNION ALL
+SELECT 6, 'VI'
+UNION ALL
+SELECT 7, 'VII'
+UNION ALL
+SELECT 8, 'VIII';
+
+
+SELECT * FROM Table1;
+SELECT * FROM Table2;
+
+
+/* (INNER) JOIN */
+SELECT t1.*, t2.* FROM Table1 t1
+JOIN Table2 t2 ON t1.ID = t2.ID;
+
+
+/* LEFT (OUTER) JOIN */
+SELECT t1.*, t2.* FROM Table1 t1
+LEFT JOIN Table2 t2 ON t1.ID = t2.ID;
+
+
+/* 
+-- RIGHT and FULL OUTER JOINs are not currently supported
+SELECT t1.*, t2.* FROM Table1 t1
+RIGHT JOIN Table2 t2 ON t1.ID = t2.ID;
+
+SELECT t1.*, t2.* FROM Table1 t1
+FULL OUTER JOIN Table2 t2 ON t1.ID = t2.ID;
+
+SELECT * FROM Table1 t1
+LEFT JOIN Table2 t2 ON t1.id = t2.id
+UNION
+SELECT * FROM Table1 t1
+RIGHT JOIN Table2 t2 ON t1.id = t2.id;
+*/
+
+
+/* CROSS JOIN -- NOTE: Pivot t1.ID */
+SELECT t1.*, t2.* FROM Table1 t1
+CROSS JOIN Table2 t2;
+
+/*************************************************************************************************************************/
+
+--  SQLite nth Highest
+
+$ winpty sqlite3 employeedb.sqlite4
+SQLite version 3.8.7.2 2014-11-18 20:57:56
+Enter ".help" for usage hints.
+sqlite> .databases
+seq  name             file
+-- -  -- -- -- -- -- -- -- -  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+0    main             E:\Working\SQL\SQLite\employeedb.sqlite4
+
+DROP TABLE IF EXISTS Employee;
+
+CREATE TABLE Employee
+(ID INT, Name NVARCHAR(50), Salary numeric(15, 2));
+
+INSERT INTO Employee
+VALUES
+(1, 'A', 10000), -- 4th
+(2, 'B', 8000),  -- 5th
+(3, 'C', 8000),  
+(4, 'D', 6000),  -- 6th
+(5, 'E', 6000),  
+(6, 'F', 6000),
+(7, 'G', 5000),  -- 7th  
+(8, 'H', 5000),
+(9, 'I', 5000),
+(10, 'J', 5000),
+(11, 'K', 4000),  -- 8th
+(12, 'L', 4000),
+(13, 'M', 3000),  -- 9th
+(14, 'N', 3000),
+(15, 'O', 1000),  -- 10th
+(16, 'P', 14000), -- 2nd
+(17, 'Q', 14000),
+(18, 'R', 12000), -- 3rd
+(19, 'S', 12000),
+(20, 'T', 16000), -- 1st
+(21, 'U', 16000), 
+(22, 'V', 16000), 
+(23, 'W', 14000),
+(24, 'X', 12000),
+(25, 'Y', 12000),
+(26, 'Z', 10000);
+
+SELECT * FROM Employee;
+
+--  16000 -- 1st
+--  14000 -- 2nd
+--  12000 -- 3rd
+--  10000 -- 4th
+--   8000 -- 5th
+--   6000 -- 6th
+--   5000 -- 7th  
+--   4000 -- 8th
+--   3000 -- 9th
+--   1000 -- 10th
+
+--  nth Highest --  5th Highest --  8000
+SELECT Salary FROM
+(
+SELECT DISTINCT Salary FROM Employee
+ORDER BY Salary DESC LIMIT 5
+)
+A ORDER BY Salary LIMIT 1;
+--  Alternatively
+SELECT *
+FROM Employee Emp1
+WHERE (5 - 1) = (
+SELECT COUNT(DISTINCT(Emp2.Salary))
+FROM Employee Emp2
+WHERE Emp2.Salary > Emp1.Salary) LIMIT 1;
+
+--  2nd Highest --  14000
+SELECT MAX(Salary) FROM Employee
+WHERE Salary NOT IN (SELECT MAX(Salary) FROM Employee);
+
+--  Alternatively
+SELECT MAX(Salary) from Employee
+WHERE Salary <> (select MAX(Salary) from Employee);
+
+/*************************************************************************************************************************/
+
+
+/*************************************************************************************************************************/
+
+# HSQLDB (HyperSQL Database)
+
+/*************************************************************************************************************************/
+
+# hsqldb-2.7.3.jar
+% cd $HOME/Desktop/GitHub/SQL-1/HSQLDB/macOSarm64
+% wget https://repo1.maven.org/maven2/org/hsqldb/hsqldb/2.7.3/hsqldb-2.7.3.jar --directory-prefix=hsqldb-2.7.3
+
+% ls hsqldb-2.7.3/
+
+# HyperSQL Server
+% cd $HOME/Desktop/GitHub/SQL-1/HSQLDB/macOSarm64
+[
+% mkdir -p hsqldb
+]
+% cd hsqldb
+% java -cp "$HOME/Desktop/GitHub/SQL-1/HSQLDB/macOSarm64/hsqldb-2.7.3/hsqldb.jar" org.hsqldb.Server -database.0 file:xdb -dbname.0 sampledb
+[control + c]
+
+# DatabaseManagerSwing
+[
+# Terminal New Window
+% cd $HOME/Desktop/GitHub/SQL-1/HSQLDB/macOSarm64
+]
+
+% java --version
+
+% jar -tvf hsqldb-2.7.3/hsqldb.jar 
+
+% jar xf hsqldb-2.7.3/hsqldb.jar META-INF/MANIFEST.MF
+
+% cat META-INF/MANIFEST.MF
+# [command + F]
+Main-Class
+
+% java -cp "$HOME/Desktop/GitHub/SQL-1/HSQLDB/macOSarm64/hsqldb-2.7.3/hsqldb.jar" org.hsqldb.util.DatabaseManagerSwing
+
+
+# HyperSQL Database Manager
+# Connect
+# OK
+[
+SELECT character_value
+FROM information_schema.sql_implementation_info
+WHERE implementation_info_name = 'DBMS VERSION';
+
+[
+DROP TABLE IF EXISTS users;
+]
+
+CREATE TABLE users
+(
+    -- id INT IDENTITY NOT NULL,
+    id INT  GENERATED BY DEFAULT AS IDENTITY (START WITH 101, INCREMENT BY 1),
+    username VARCHAR(50) NOT NULL, 
+    login_date DATE DEFAULT CURRENT_DATE,
+    login_time TIME DEFAULT CURRENT_TIME,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT LOCALTIMESTAMP,    
+    CONSTRAINT pk_id PRIMARY KEY(id),
+    CONSTRAINT idx_username UNIQUE(username)    
+);
+COMMIT;
+
+SELECT * FROM users;
+
+INSERT INTO users(username, login_date, login_time, created_at, updated_at)
+VALUES('Foo', '2016-11-06', '10:49:35', '2016-11-06 10:49:35.0', '2016-11-06 10:49:35.0');
+COMMIT;
+
+SELECT * FROM users;
+]
+# File 
+# Exit
+
+
+# rm dat
+% rm -rf $HOME/hsqlprefs.dat
+
+/*************************************************************************************************************************/
+
+
+/*************************************************************************************************************************/
+
+# H2 Database
+
+/*************************************************************************************************************************/
+
+# H2 Server
+% java --version
+% cd $HOME/Desktop/GitHub/SQL-1/H2/macOSarm64
+[
+% mkdir -p h2 
+]
+% java -cp "$HOME/Desktop/GitHub/SQL-1/H2/h2-2.2.224/h2-2.2.224.jar" org.h2.tools.Console -baseDir $HOME/Desktop/GitHub/SQL-1/H2/macOSarm64/h2 -properties $HOME/Desktop/GitHub/SQL-1/H2/macOSarm64/h2
+[
+# Pre-created
+% java -cp "$HOME/Desktop/GitHub/SQL-1/H2/h2-2.2.224/h2-2.2.224.jar" org.h2.tools.Server -baseDir $HOME/Desktop/GitHub/SQL-1/H2/macOSarm64/h2 -properties $HOME/Desktop/GitHub/SQL-1/H2/macOSarm64/h2
+]
+[
+Saved Settings:	
+Generic H2 (Embedded)
+Setting Name:	
+Generic H2 (Embedded)
+Driver Class:	
+org.h2.Driver
+JDBC URL:	
+jdbc:h2:sampledb
+]
+
+[
+SELECT H2VERSION() FROM DUAL;
+
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users
+(
+    -- id INT IDENTITY NOT NULL,
+    -- VERSION 2.2.224 does not support comma between START and INCREMENT
+    -- id INT GENERATED BY DEFAULT AS IDENTITY (START WITH 101, INCREMENT BY 1),
+    -- Hence
+    -- id INT GENERATED BY DEFAULT AS IDENTITY (START WITH 101 INCREMENT BY 1),
+    -- PRIMARY KEY
+    id INT GENERATED BY DEFAULT AS IDENTITY (START WITH 101 INCREMENT BY 1) PRIMARY KEY,
+    username VARCHAR(50) NOT NULL, 
+    login_date DATE DEFAULT CURRENT_DATE,
+    login_time TIME DEFAULT CURRENT_TIME,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,    
+    CONSTRAINT pk_id PRIMARY KEY(id),
+    CONSTRAINT idx_username UNIQUE(username)    
+);
+COMMIT;
+
+SELECT * FROM users;
+
+INSERT INTO users(username, login_date, login_time, created_at, updated_at)
+VALUES('Foo', '2016-11-06', '10:49:35', '2016-11-06 10:49:35.0', '2016-11-06 10:49:35.0');
+COMMIT;
+
+SELECT * FROM users;
+
+-- DELETE FROM users;
+-- COMMIT;
+
+-- SELECT * FROM users;
+
+
+# H2 Shell
+# Terminal New Window
+% java --version
+% cd $HOME/Desktop/GitHub/SQL-1/H2/macOSarm64
+% java -cp "$HOME/Desktop/GitHub/SQL-1/H2/h2-2.2.224/h2-2.2.224.jar" org.h2.tools.Shell -url "jdbc:h2:tcp://localhost/sampledb" -user "sa"
+
+sql> SELECT * FROM users;
+sql> exit
+
+/*************************************************************************************************************************/
+
+
+-- Credits
+/*
+https://postgresql.org/
+https://mysql.com/
+https://mariadb.org/
+https://microsoft.com/
+https://azure.microsoft.com/
+https://oracle.com/
+https://sqlite.org/
+https://hsqldb.org/
+https://h2database.com/
+https://openjdk.org/
+https://java.com/
+*/
