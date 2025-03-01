@@ -3,4 +3,4 @@
 *.js linguist-detectable=false
 *.java linguist-detectable=false
 *.sql linguist-detectable=true
-*.sql linguist-language=sql
+*.* linguist-language=sql
