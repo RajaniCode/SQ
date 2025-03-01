@@ -50,8 +50,6 @@ Credits/nodejs.org.svg)](https://nodejs.org/)
 [![image](
 Credits/npmjs.com.svg)](https://npmjs.com/)  
 [![image](
-Credits/pnpm.io.svg)](https://pnpm.io/)  
-[![image](
 Credits/jquery.com.svg)](https://jquery.com/)  
 [![image](
 Credits/developer.mozilla.org.svg)](https://developer.mozilla.org/)  
