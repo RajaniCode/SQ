@@ -6,9 +6,8 @@ Oracle
 Credits
 -------
 [![image](
-Credits/Oracle-Database-oracle.com.svg)](https://oracle.com/database/)  
-[![image](
-Credits/oracle.com.svg)](https://oracle.com/)  
+Credits/Oracle-Database-oracle.com.svg)](https://oracle.com/database/)<!--[![image](
+Credits/oracle.com.svg)](https://oracle.com/)-->  
 [![image](
 Credits/nodejs.org.svg)](https://nodejs.org/)  
 [![image](
